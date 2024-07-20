@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueValidator
 
 # 회원가입 시리얼라이저
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(required=True, validators=[validate_password]) # 적절한 비밀번호인지 체크
+    password = serializers.CharField(required=True, validators=[validate_password]) # 적절한 비밀번호인지 체크(너무 쉬운 비밀번호 방지)
     username = serializers.CharField(required=True)
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=CustomUser.objects.all())]) # 이메일 중복 방지 validator
     phone_number = serializers.CharField(required=True, validators=[UniqueValidator(queryset=CustomUser.objects.all())])    # 전화번호 중복 방지 validator
