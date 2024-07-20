@@ -39,3 +39,37 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+    
+
+# 로그인 시리얼라이저
+class LoginSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'password']
+
+    def validate(self, data):
+        username = data.get("username", None)
+        password = data.geet("password", None)
+
+        user = CustomUser.get_user_or_none_by_username(username=username)
+
+        if user is None:
+            raise serializers.ValidationError("user account not exist")
+        else:
+            if not user.check_password(raw_password=password):
+                raise serializers.ValidationError("wrong password")
+            
+        token = RefreshToken.for_user(user)
+        refresh_token = str(token)
+        access_token = str(token.access_token)
+
+        data = {
+            "user": user,
+            "refresh_token": refresh_token,
+            "access_token": access_token,
+        }
+
+        return data

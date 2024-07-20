@@ -12,3 +12,9 @@ class CustomUser(AbstractUser):
     birth = models.DateField()                          # 생년월일
     deleted_at = models.DateTimeField(null=True)        # 회원 탈퇴 시간
     email_checked = models.BooleanField(default=False)  # 이메일 인증 여부
+
+    def get_user_or_none_by_username(username):
+        try:
+            return CustomUser.objects.get(username=username)
+        except Exception:
+            return None
