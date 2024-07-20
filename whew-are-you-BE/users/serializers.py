@@ -52,7 +52,7 @@ class LoginSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         username = data.get("username", None)
-        password = data.geet("password", None)
+        password = data.get("password", None)
 
         user = CustomUser.get_user_or_none_by_username(username=username)
 
