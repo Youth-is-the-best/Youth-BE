@@ -32,6 +32,7 @@ class RegisterView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
+# 로그인 뷰
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
