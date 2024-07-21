@@ -63,6 +63,8 @@ PROJECT_APPS = [
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
+    # 'django_registration',
+    "verify_email.apps.VerifyEmailConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
@@ -168,3 +170,15 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'TOKEN_USER_CLASS': 'accounts.User',
 }
+
+# django_registration
+# ACCOUNT_ACTIVATION_DAYS = 7
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = get_secret('EMAIL_ID') 
+EMAIL_HOST_PASSWORD = get_secret('EMAIL_APPKEY')
+
+DEFAULT_FROM_EMAIL = '휴알유<dev.whewareyou@gmail.com>'

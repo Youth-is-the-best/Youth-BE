@@ -20,9 +20,9 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured(error_msg)
 
 #### [email] ####
-sender_email = "dev.whewareyou@gmail.com"
+sender_email = get_secret("EMAIL_ID")
 receiver_email = "nyskyline7@gmail.com"
-password = get_secret("GOOGLE_APP_PWD")
+password = get_secret("EMAIL_APPKEY")
 
 message = MIMEMultipart("alternative")
 message["Subject"] = "[휴알유] 회원가입을 위한 인증메일이 도착하였습니다."

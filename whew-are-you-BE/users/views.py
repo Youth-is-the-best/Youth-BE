@@ -6,6 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import logout
 
 from .serializers import *
+from verify_email.email_handler import send_verification_email
+from .form import CustomUserForm
+
 
 # 회원가입 뷰
 class RegisterView(APIView):
@@ -14,22 +17,29 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
-            user = serializer.save(request)
-            token = RefreshToken.for_user(user)
-            refresh_token = str(token)
-            access_token = str(token.access_token)
-            res = Response(
-                {
-                    "user": serializer.data,
-                    "message": "register success",
-                    "token": {
-                        "access_token": access_token,
-                        "refresh_token": refresh_token,
+            validated_data = serializer.validated_data
+            print(validated_data)
+            form = CustomUserForm(validated_data)
+            pending_user = send_verification_email(request, form)
+
+            # TODO: 이 아래 로직은 별도의 view로 분리하거나 위의 email 인증을 별도의 뷰로 빼거나 해야함
+            if pending_user.is_active is True:
+                user = pending_user
+                token = RefreshToken.for_user(user)
+                refresh_token = str(token)
+                access_token = str(token.access_token)
+                res = Response(
+                    {
+                        "user": serializer.data,
+                        "message": "register success",
+                        "token": {
+                            "access_token": access_token,
+                            "refresh_token": refresh_token,
+                        },
                     },
-                },
-                status=status.HTTP_201_CREATED,
-            )
-            return res
+                    status=status.HTTP_201_CREATED,
+                )
+                return res
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
