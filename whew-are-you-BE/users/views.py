@@ -88,10 +88,11 @@ class VerifyMailView(APIView):
         #인증번호 생성
         verif_code = str(random.randint(100000, 999999))
         try:
-            new_verif_request = Verif(email, verif_code)
+            new_verif_request = Verif(email=email, verif_code=verif_code)
             new_verif_request.save()
             send_email(email, verif_code)
-        except:
-            return Response({"error": "발송 중 오류가 발생했습니다. 잠시 후 다시 시도 바랍니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print("오류 났어!!!!!!"+e)
+            return Response({"error": "발송 중 서버 오류가 발생했습니다. 잠시 후 다시 시도 바랍니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"success": "인증번호가 메일로 발송되었습니다."}, status=status.HTTP_200_OK)
     

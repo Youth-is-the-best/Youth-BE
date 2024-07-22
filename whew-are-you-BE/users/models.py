@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
 class Verif(models.Model): #하나의 인증요청당 1개 생김
     email = models.EmailField()
     created_at = models.DateTimeField(auto_now_add=True)
+    verif_code = models.CharField(max_length=6)
     hash = models.CharField(max_length=20, null=True)
     is_valid = models.BooleanField(default=True) #인증시간 초과된 것과 별개로, 여러개의 인증요청 올 경우, 최신 번호만 남겨두고 나머지는 비활성화
     is_fulfilled = models.BooleanField(default=False) #인증이 완료되면 hash값이 생기고 is_fulfilled=True로 바뀜
-    
