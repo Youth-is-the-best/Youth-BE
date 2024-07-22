@@ -23,17 +23,10 @@ class CustomUser(AbstractUser):
         except Exception:
             return None
         
-class PendingUser(AbstractUser): #하나의 가입 시도당 1개 생김
-    created_at = models.DateTimeField(auto_now_add=True)
+class Verif(models.Model): #하나의 인증요청당 1개 생김
     email = models.EmailField()
-    password = models.CharField(max_length=20)
-    link = models.CharField(max_length=50, null=True) #이메일로 전송되는 링크에의 해시
-    hash = models.CharField(max_length=50, null=True) #프론트로 리다이렉트 될때 사용되는 해시
-    is_active = models.BooleanField(default=True) #이전 가입 시도는 False로 변경
+    created_at = models.DateTimeField(auto_now_add=True)
+    hash = models.CharField(max_length=20, null=True)
+    is_valid = models.BooleanField(default=True) #인증시간 초과된 것과 별개로, 여러개의 인증요청 올 경우, 최신 번호만 남겨두고 나머지는 비활성화
+    is_fulfilled = models.BooleanField(default=False) #인증이 완료되면 hash값이 생기고 is_fulfilled=True로 바뀜
     
-    @staticmethod
-    def get_pending_or_none_by_username(email):
-        try:
-            return PendingUser.objects.get(email=email)
-        except ObjectDoesNotExist:
-            return None
