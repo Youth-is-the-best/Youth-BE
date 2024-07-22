@@ -20,8 +20,9 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured(error_msg)
 
 def send_email(receiver_email, verif_code):
+    print(f"[logs] sending email to {receiver_email}...")
     sender_email = get_secret("EMAIL_ID")
-    receiver_email = "nyskyline7@gmail.com"
+    receiver_email = receiver_email
     password = get_secret("EMAIL_APPKEY")
 
     message = MIMEMultipart("alternative")
