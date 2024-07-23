@@ -40,6 +40,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
+            user = serializer.save(request)
             token = RefreshToken.for_user(user)
             refresh_token = str(token)
             access_token = str(token.access_token)
@@ -113,8 +114,21 @@ class VerifyMailView(APIView):
             return Response({"error": "이메일 주소가 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
         #이미 회원으로 가입된 메일 주소인지 확인
         if CustomUser.objects.filter(email=email).exists():
-            return Response({"error": "이미 가입된 이메일 주소입니다."}, status=status.HTTP_400_BAD_REQUEST)
-        #아니라면, 인증번호 생성 후 django.mail을 통해, 인증번호 이메일 발송
+            return Response({"error": "이미 가입된 이메일 주소입니다.", "short_msg": "email_taken"}, status=status.HTTP_400_BAD_REQUEST)
+        #학교 이메일인지 확인
+        domain = email.split('@')[1]
+        script_dir = os.path.dirname(__file__)
+        json_path = os.path.join(script_dir, 'schools.json')
+
+        with open(json_path, 'r') as file:
+            school_data = json.load(file)
+        school_names = school_data.get(domain)
+        if school_names is None :
+            pass
+            #TODO 실배포시 살리기
+            #return Response({"error": "학교 이메일 주소만 가입 가능합니다. ", "short_msg": "notschoolemail"}, status=status.HTTP_400_BAD_REQUEST)
+
+        #인증번호 생성 후 django.mail을 통해, 인증번호 이메일 발송
         #인증번호 생성
         verif_code = str(random.randint(100000, 999999))
         try:
@@ -124,7 +138,9 @@ class VerifyMailView(APIView):
         except Exception as e:
             print("오류 났어!!!!!!"+e)
             return Response({"error": "발송 중 서버 오류가 발생했습니다. 잠시 후 다시 시도 바랍니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"success": "인증번호가 메일로 발송되었습니다."}, status=status.HTTP_200_OK)
+        if school_names is None :
+            return Response({"error": "학교 이메일 주소만 가입 가능합니다. 단 테스트 기간에는 사용 가능합니다. 인증번호는 메일로 발송되었습니다.", "short_msg": "not_school_email"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({f"success": "인증번호가 메일로 발송되었습니다.", "school_names": school_names}, status=status.HTTP_200_OK)
     
     def validate_6code(self, request):
         email = request.data.get('email')
@@ -139,7 +155,7 @@ class VerifyMailView(APIView):
         verif_objects = Verif.objects.filter(email=email, verif_code=verif_code, is_valid=True, created_at__gte=five_minutes_ago)
 
         if not verif_objects.exists():
-            return Response({"error": "유효하지 않은 인증번호입니다."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"error": "유효하지 않은 인증번호입니다.", "short_msg": "invalid_code"}, status=status.HTTP_401_UNAUTHORIZED)
         
         #무결성 hash값(이메일을 대신) 생성, 저장 
         secret_key = base64.b64decode(get_secret("B64_HMAC_KEY"))
