@@ -159,7 +159,8 @@ class VerifyMailView(APIView):
         
         #무결성 hash값(이메일을 대신) 생성, 저장 
         secret_key = base64.b64decode(get_secret("B64_HMAC_KEY"))
-        hash = hmac.new(secret_key, msg=email.encode(), digestmod=hashlib.sha256).digest()
+        msg_str = email + str(timezone.now())
+        hash = hmac.new(secret_key, msg=msg_str.encode(), digestmod=hashlib.sha256).digest()
         base64_hash = base64.b64encode(hash).decode()
 
         assert (verif_objects.count() == 1)
