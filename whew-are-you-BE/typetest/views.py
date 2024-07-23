@@ -45,6 +45,8 @@ class SubmitAnswerAPIView(APIView):
         question_id = request.data.get('question_id')                       # 질문 번호(1 ~ 4번 설정)
         answer_text = request.data.get('answer_text')                       # 답변 텍스트(1번, 2번, 4번)
         choices = request.data.get('choices', [])                           # 사용자가 선택한 복수선택 선지(3번)
+        return_year = request.data.get('return_year')                       # 복학 년도
+        return_semester = request.data.get('return_semester')               # 복학 학기
 
         try:
             question = Question.objects.get(id=question_id)                 # 질문을 불러옴
@@ -53,7 +55,11 @@ class SubmitAnswerAPIView(APIView):
 
         # 로그인 상태면 DB에 데이터를 생성
         if user:
-            Answer.objects.create(user=user, question=question, answer_text=answer_text)
+            # 1번 질문이면 복학 시기를 저장
+            if question_id == 1:
+                Answer.objects.create(user=user, question=question, return_year=return_year, return_semester=return_semester)
+            else:
+                Answer.objects.create(user=user, question=question, answer_text=answer_text)
 
         # 일단 각 유형에 대한 총점을 0점으로 초기화
         self.initialize_scores(request)
@@ -123,5 +129,3 @@ class SubmitAnswerAPIView(APIView):
                 'scores': scores,
                 'user_type': user_type
             }, status=status.HTTP_200_OK)
-
-

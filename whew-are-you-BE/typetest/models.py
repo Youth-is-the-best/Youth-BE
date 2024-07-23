@@ -17,7 +17,9 @@ class Choice(models.Model):
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
-    answer_text = models.TextField()
+    answer_text = models.TextField(null=True, blank=True)
+    return_year = models.IntegerField(null=True, blank=True)
+    return_semester = models.IntegerField(null=True, blank=True)
 
 
 # 타입(7가지) 모델
@@ -31,5 +33,5 @@ class Type(models.Model):
         ('STRATEGIST', '전략가'),
         ('EXPLORER', '탐험가'),
     ]
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
