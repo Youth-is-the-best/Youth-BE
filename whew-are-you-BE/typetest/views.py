@@ -89,21 +89,23 @@ class SubmitAnswerAPIView(APIView):
             rank_points = [5, 4, 3, 2, 1]
             for idx, choice in enumerate(choices):  # enumerate 함수를 통해 인덱스와 선택지를 choice로부터 받음
                 if idx < len(rank_points):
-                    # 선택된 활동에 따라 특정 유형에 가중치를 부여
-                    if choice in ['채용 공고 확인', '채용 지원', '인턴 지원']:
+                    # 선택된 활동에 따라 특정 유형에 가중치를 부여, 겹치는걸 고려해서 if문으로만 구성
+                    if choice in ['취업 준비', '자격증 취득', '대외활동 참여']:
                         scores['CHALLENGER'] += rank_points[idx]
-                    elif choice in ['어학 자격증 취득', '대외활동 참여']:
+                    if choice in ['인턴 근무', '자기계발' '대외활동 참여', '동아리활동 참여', '취미활동']:
                         scores['ACTIVIST'] += rank_points[idx]
-                    elif choice in ['여행', '새로운 인간관계 형성']:
+                    if choice in ['여행', '새로운 인간관계 형성']:
                         scores['TRAVELER'] += rank_points[idx]
-                    elif choice in ['휴식', '독서']:
+                    if choice in ['여행', '휴식', '독서', '혼자만의 시간', '가족과의 시간']:
                         scores['RESTER'] += rank_points[idx]
-                    elif choice in ['취미활동', '자기계발']:
+                    if choice in []:
                         scores['LEARNER'] += rank_points[idx]
-                    elif choice in ['혼자만의 시간', '가족과의 시간']:
+                    if choice in ['아르바이트']:
                         scores['STRATEGIST'] += rank_points[idx]
-                    elif choice in ['진로 탐색', '기타']:
+                    if choice in ['취미활동', '진로 탐색']:
                         scores['EXPLORER'] += rank_points[idx]
+                    # 직접 입력인 경우 answer_text에서 내용을 받아옴
+
 
         # 업데이트된 점수를 저장
         request.session['scores'] = scores
