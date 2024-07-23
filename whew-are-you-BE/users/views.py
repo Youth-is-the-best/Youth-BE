@@ -40,6 +40,7 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid(raise_exception=True):
+            user = serializer.save(request)
             token = RefreshToken.for_user(user)
             refresh_token = str(token)
             access_token = str(token.access_token)
