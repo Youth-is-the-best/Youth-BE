@@ -170,6 +170,16 @@ SIMPLE_JWT = {
     'TOKEN_USER_CLASS': 'accounts.User',
 }
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = get_secret('EMAIL_ID') 
+EMAIL_HOST_PASSWORD = get_secret('EMAIL_APPKEY')
+
+DEFAULT_FROM_EMAIL = '휴알유<dev.whewareyou@gmail.com>'
+
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [ 

@@ -1,6 +1,6 @@
 from rest_framework_simplejwt.serializers import RefreshToken
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Verif
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
 
@@ -73,3 +73,8 @@ class LoginSerializer(serializers.ModelSerializer):
         }
 
         return data
+    
+class VerifSerializer(serializers.Serializer):
+    class Meta:
+        model = Verif
+        fields = "__all__"
