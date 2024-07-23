@@ -59,6 +59,18 @@ class RegisterView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+    def get(self, request):
+        query = request.data.get('username')
+        existing = CustomUser.objects.filter(username=query)
+        if not query:
+            return Response({"error": "username 필드 필요"}, status=status.HTTP_400_BAD_REQUEST)
+
+        existing = CustomUser.objects.filter(username=query)
+        if existing.exists():
+            return Response({"available": False}, status=status.HTTP_200_OK)
+        else:
+            return Response({"available": True}, status=status.HTTP_200_OK)
+        
 
 # 로그인 뷰
 class LoginView(APIView):
