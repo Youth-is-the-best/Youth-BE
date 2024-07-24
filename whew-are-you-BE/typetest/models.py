@@ -33,5 +33,5 @@ class Type(models.Model):
         ('BEAR', '곰'),
         ('DOLPHIN', '돌고래'),
     ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    content = models.TextField(null=True, blank=True)
