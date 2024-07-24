@@ -132,7 +132,7 @@ class VerifyMailView(APIView):
         script_dir = os.path.dirname(__file__)
         json_path = os.path.join(script_dir, 'schools.json')
 
-        with open(json_path, 'r') as file:
+        with open(json_path, 'r', encoding='utf-8') as file:
             school_data = json.load(file)
         school_names = school_data.get(domain)
         if school_names is None :
