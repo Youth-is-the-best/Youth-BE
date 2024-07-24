@@ -31,13 +31,13 @@ class SubmitAnswerAPIView(APIView):
     def initialize_scores(self, request):
         if 'scores' not in request.session:
             request.session['scores'] = {
-                'CHALLENGER': 0,
-                'ACTIVIST': 0,
-                'RESTER': 0,
-                'LEARNER': 0,
-                'TRAVELER': 0,
-                'STRATEGIST': 0,
-                'EXPLORER': 0
+                'SQUIRREL': 0,
+                'RABBIT': 0,
+                'PANDA': 0,
+                'BEAVER': 0,
+                'EAGLE': 0,
+                'BEAR': 0,
+                'DOLPHIN': 0
             }
 
     def post(self, request, *args, **kwargs):
@@ -68,21 +68,21 @@ class SubmitAnswerAPIView(APIView):
         if question_id == 2:
             # 2번 문항의 가중치 15점을 특정 유형에 부여
             if answer_text == 'jobPreparation':
-                scores['CHALLENGER'] += 15
+                scores['SQUIRREL'] += 15
             elif answer_text == 'internship':
-                scores['ACTIVIST'] += 15
+                scores['RABBIT'] += 15
             elif answer_text == 'academicStress':
-                scores['RESTER'] += 15
+                scores['PANDA'] += 15
             elif answer_text == 'selfDevelopment':
-                scores['LEARNER'] += 15
+                scores['BEAVER'] += 15
             elif answer_text == 'diverseExperiences':
-                scores['TRAVELER'] += 15
+                scores['EAGLE'] += 15
             elif answer_text == 'financialBurden':
-                scores['STRATEGIST'] += 15
+                scores['BEAR'] += 15
             elif answer_text == 'mentalStability':
-                scores['RESTER'] += 15
+                scores['PANDA'] += 15
             elif answer_text == 'newCareerExploration':
-                scores['EXPLORER'] += 15
+                scores['DOLPHIN'] += 15
 
         elif question_id == 3:
             # 3번 문항의 가중치를 사용자의 선택에 따라 부여
@@ -91,19 +91,19 @@ class SubmitAnswerAPIView(APIView):
                 if idx < len(rank_points):
                     # 선택된 활동에 따라 특정 유형에 가중치를 부여, 겹치는걸 고려해서 if문으로만 구성
                     if choice in ['취업 준비', '자격증 취득', '대외활동 참여']:
-                        scores['CHALLENGER'] += rank_points[idx]
+                        scores['SQUIRREL'] += rank_points[idx]
                     if choice in ['인턴 근무', '자기계발' '대외활동 참여', '동아리활동 참여', '취미활동']:
-                        scores['ACTIVIST'] += rank_points[idx]
+                        scores['RABBIT'] += rank_points[idx]
                     if choice in ['여행', '새로운 인간관계 형성']:
-                        scores['TRAVELER'] += rank_points[idx]
+                        scores['EAGLE'] += rank_points[idx]
                     if choice in ['여행', '휴식', '독서', '혼자만의 시간', '가족과의 시간']:
-                        scores['RESTER'] += rank_points[idx]
+                        scores['PANDA'] += rank_points[idx]
                     if choice in []:
-                        scores['LEARNER'] += rank_points[idx]
+                        scores['BEAVER'] += rank_points[idx]
                     if choice in ['아르바이트']:
-                        scores['STRATEGIST'] += rank_points[idx]
+                        scores['BEAR'] += rank_points[idx]
                     if choice in ['취미활동', '진로 탐색']:
-                        scores['EXPLORER'] += rank_points[idx]
+                        scores['DOLPHIN'] += rank_points[idx]
 
 
         # 업데이트된 점수를 저장

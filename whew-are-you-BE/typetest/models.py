@@ -25,13 +25,13 @@ class Answer(models.Model):
 # 타입(7가지) 모델
 class Type(models.Model):
     TYPE_CHOICES = [
-        ('CHALLENGER', '도전가'),
-        ('ACTIVIST', '활동가'),
-        ('RESTER', '휴식가'),
-        ('LEARNER', '학습가'),
-        ('TRAVELER', '여행자'),
-        ('STRATEGIST', '전략가'),
-        ('EXPLORER', '탐험가'),
+        ('SQUIRREL', '다람쥐'),
+        ('RABBIT', '토끼'),
+        ('PANDA', '판다'),
+        ('BEAVER', '비버'),
+        ('EAGLE', '독수리'),
+        ('BEAR', '곰'),
+        ('DOLPHIN', '돌고래'),
     ]
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
