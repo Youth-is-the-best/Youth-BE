@@ -126,6 +126,11 @@ class SubmitAnswerAPIView(APIView):
                     if choice in ['취미활동', '진로 탐색']:
                         scores['DOLPHIN'] += rank_points[idx]
 
+        elif question_id == 4:
+            # 에러 발생
+            if not answer_text:
+                return Response({'error': 'answer_text is required'}, status=status.HTTP_400_BAD_REQUEST)
+
         # 업데이트된 점수를 저장
         request.session['scores'] = scores
 
