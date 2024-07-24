@@ -148,6 +148,8 @@ class SubmitAnswerAPIView(APIView):
         # 다음 질문이 없으면 최종 결과를 계산
         else:
             user_type = max(scores, key=scores.get)
+            user_type_instance = Type.objects.get(user_type=user_type)
+
             # 마지막 문제에서 점수를 초기화(세션id 때문)
             scores['SQUIRREL'] = 0
             scores['RABBIT'] = 0
@@ -158,7 +160,10 @@ class SubmitAnswerAPIView(APIView):
             scores['DOLPHIN'] = 0
 
             if user:
-                Type.objects.create(user=user, user_type=user_type)
+                # CustomUser의 type_result 필드 업데이트
+                user.type_result = user_type_instance
+                user.save()
+                
             return Response({
                 'message': 'All questions answered.',
                 'scores': scores,
