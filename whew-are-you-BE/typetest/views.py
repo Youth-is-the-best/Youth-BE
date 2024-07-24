@@ -104,7 +104,6 @@ class SubmitAnswerAPIView(APIView):
                         scores['STRATEGIST'] += rank_points[idx]
                     if choice in ['취미활동', '진로 탐색']:
                         scores['EXPLORER'] += rank_points[idx]
-                    # 직접 입력인 경우 answer_text에서 내용을 받아옴
 
 
         # 업데이트된 점수를 저장
