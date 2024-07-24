@@ -188,7 +188,7 @@ DATABASES = {
 		'NAME': get_secret("DB_NAME"),
 		'USER': get_secret("DB_USER"), # root로 접속하여 DB를 만들었다면 'root'
 		'PASSWORD': get_secret("DB_PWD"),
-		'HOST': 'localhost',
+		'HOST': get_secret("DB_HOSTNAME"),
 		'PORT': '3306'
 	}
 }
