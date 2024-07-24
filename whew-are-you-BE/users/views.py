@@ -59,6 +59,18 @@ class RegisterView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+    def get(self, request):
+        query = request.data.get('username')
+        existing = CustomUser.objects.filter(username=query)
+        if not query:
+            return Response({"error": "username 필드 필요"}, status=status.HTTP_400_BAD_REQUEST)
+
+        existing = CustomUser.objects.filter(username=query)
+        if existing.exists():
+            return Response({"available": False}, status=status.HTTP_200_OK)
+        else:
+            return Response({"available": True}, status=status.HTTP_200_OK)
+        
 
 # 로그인 뷰
 class LoginView(APIView):
@@ -159,7 +171,8 @@ class VerifyMailView(APIView):
         
         #무결성 hash값(이메일을 대신) 생성, 저장 
         secret_key = base64.b64decode(get_secret("B64_HMAC_KEY"))
-        hash = hmac.new(secret_key, msg=email.encode(), digestmod=hashlib.sha256).digest()
+        msg_str = email + str(timezone.now())
+        hash = hmac.new(secret_key, msg=msg_str.encode(), digestmod=hashlib.sha256).digest()
         base64_hash = base64.b64encode(hash).decode()
 
         assert (verif_objects.count() == 1)

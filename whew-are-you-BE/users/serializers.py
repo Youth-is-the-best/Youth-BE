@@ -8,30 +8,31 @@ from rest_framework.validators import UniqueValidator
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(required=True, validators=[validate_password]) # 적절한 비밀번호인지 체크(너무 쉬운 비밀번호 방지)
     username = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=CustomUser.objects.all())]) # 이메일 중복 방지 validator
-    phone_number = serializers.CharField(required=True, validators=[UniqueValidator(queryset=CustomUser.objects.all())])    # 전화번호 중복 방지 validator
+    hash = serializers.CharField(required=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     university = serializers.CharField(required=True)
-    college = serializers.CharField(required=True)
-    major = serializers.CharField(required=True)
-    birth = serializers.DateField(required=True)
+    college = serializers.CharField(required=False)
+    major = serializers.CharField(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['password', 'username', 'email', 'first_name', 'last_name', 'university', 'college', 'major', 'birth', 'phone_number']
+        fields = ['password', 'username', 'hash', 'first_name', 'last_name', 'university', 'college', 'major']
 
     def save(self, request):
+        email_hash = self.validated_data['hash']
+        verif_object = Verif.objects.filter(hash=email_hash, is_fulfilled=True)
+        assert(verif_object.count() == 1)
+        email = verif_object.get().email
+
         user = CustomUser.objects.create(
             username=self.validated_data['username'],
-            email=self.validated_data['email'],
-            phone_number=self.validated_data['phone_number'],
+            email=email,
             first_name=self.validated_data['first_name'],
             last_name=self.validated_data['last_name'],
             university=self.validated_data['university'],
-            college=self.validated_data['college'],
-            major=self.validated_data['major'],
-            birth=self.validated_data['birth'],
+            college = self.validated_data.get('college', None),
+            major = self.validated_data.get('major', None)
         )
 
         # 비밀번호를 암호화
@@ -74,7 +75,7 @@ class LoginSerializer(serializers.ModelSerializer):
 
         return data
     
-class VerifSerializer(serializers.Serializer):
+class VerifSerializer(serializers.ModelSerializer):
     class Meta:
         model = Verif
         fields = "__all__"
