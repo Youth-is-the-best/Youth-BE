@@ -31,13 +31,13 @@ class SubmitAnswerAPIView(APIView):
     def initialize_scores(self, request):
         if 'scores' not in request.session:
             request.session['scores'] = {
-                'CHALLENGER': 0,
-                'ACTIVIST': 0,
-                'RESTER': 0,
-                'LEARNER': 0,
-                'TRAVELER': 0,
-                'STRATEGIST': 0,
-                'EXPLORER': 0
+                'SQUIRREL': 0,
+                'RABBIT': 0,
+                'PANDA': 0,
+                'BEAVER': 0,
+                'EAGLE': 0,
+                'BEAR': 0,
+                'DOLPHIN': 0
             }
 
     def post(self, request, *args, **kwargs):
@@ -65,47 +65,71 @@ class SubmitAnswerAPIView(APIView):
         self.initialize_scores(request)
         scores = request.session['scores']
 
-        if question_id == 2:
+        if question_id == 1:
+                if not return_year:
+                    return Response({'error': 'return_year is required'}, status=status.HTTP_400_BAD_REQUEST)
+                if not return_semester:
+                    return Response({'error': 'return_semester is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif question_id == 2:
+            # 에러 발생
+            if not answer_text:
+                return Response({'error': 'answer_text is required'}, status=status.HTTP_400_BAD_REQUEST)
+            if answer_text not in ['jobPreparation', 'internship', 'academicStress', 'selfDevelopment', 'diverseExperiences', 'financialBurden', 'mentalStability', 'newCareerExploration']:
+                return Response({'error': 'Invalid answer_text'}, status=status.HTTP_400_BAD_REQUEST)
+            
             # 2번 문항의 가중치 15점을 특정 유형에 부여
             if answer_text == 'jobPreparation':
-                scores['CHALLENGER'] += 15
+                scores['SQUIRREL'] += 15
             elif answer_text == 'internship':
-                scores['ACTIVIST'] += 15
+                scores['RABBIT'] += 15
             elif answer_text == 'academicStress':
-                scores['RESTER'] += 15
+                scores['PANDA'] += 15
             elif answer_text == 'selfDevelopment':
-                scores['LEARNER'] += 15
+                scores['BEAVER'] += 15
             elif answer_text == 'diverseExperiences':
-                scores['TRAVELER'] += 15
+                scores['EAGLE'] += 15
             elif answer_text == 'financialBurden':
-                scores['STRATEGIST'] += 15
+                scores['BEAR'] += 15
             elif answer_text == 'mentalStability':
-                scores['RESTER'] += 15
+                scores['PANDA'] += 15
             elif answer_text == 'newCareerExploration':
-                scores['EXPLORER'] += 15
+                scores['DOLPHIN'] += 15
 
         elif question_id == 3:
+            # 에러
+            if not choices:
+                return Response({'error': 'choices is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
             # 3번 문항의 가중치를 사용자의 선택에 따라 부여
             rank_points = [5, 4, 3, 2, 1]
             for idx, choice in enumerate(choices):  # enumerate 함수를 통해 인덱스와 선택지를 choice로부터 받음
                 if idx < len(rank_points):
+                    # 값이 올바르지 않으면 에러
+                    if choice not in ['취업 준비', '자격증 취득', '대외활동 참여', '인턴 근무', '자기계발' '대외활동 참여', '동아리활동 참여', '취미활동',
+                                      '여행', '새로운 인간관계 형성', '휴식', '독서', '혼자만의 시간', '가족과의 시간', '아르바이트', '취미활동', '진로 탐색']:
+                        return Response({'error': 'Invalid choices'}, status=status.HTTP_400_BAD_REQUEST)
+                    
                     # 선택된 활동에 따라 특정 유형에 가중치를 부여, 겹치는걸 고려해서 if문으로만 구성
                     if choice in ['취업 준비', '자격증 취득', '대외활동 참여']:
-                        scores['CHALLENGER'] += rank_points[idx]
+                        scores['SQUIRREL'] += rank_points[idx]
                     if choice in ['인턴 근무', '자기계발' '대외활동 참여', '동아리활동 참여', '취미활동']:
-                        scores['ACTIVIST'] += rank_points[idx]
+                        scores['RABBIT'] += rank_points[idx]
                     if choice in ['여행', '새로운 인간관계 형성']:
-                        scores['TRAVELER'] += rank_points[idx]
+                        scores['EAGLE'] += rank_points[idx]
                     if choice in ['여행', '휴식', '독서', '혼자만의 시간', '가족과의 시간']:
-                        scores['RESTER'] += rank_points[idx]
-                    if choice in []:
-                        scores['LEARNER'] += rank_points[idx]
+                        scores['PANDA'] += rank_points[idx]
+                    if choice in ['자격증 취득', '자기계발']:
+                        scores['BEAVER'] += rank_points[idx]
                     if choice in ['아르바이트']:
-                        scores['STRATEGIST'] += rank_points[idx]
+                        scores['BEAR'] += rank_points[idx]
                     if choice in ['취미활동', '진로 탐색']:
-                        scores['EXPLORER'] += rank_points[idx]
-                    # 직접 입력인 경우 answer_text에서 내용을 받아옴
+                        scores['DOLPHIN'] += rank_points[idx]
 
+        elif question_id == 4:
+            # 에러 발생
+            if not answer_text:
+                return Response({'error': 'answer_text is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 업데이트된 점수를 저장
         request.session['scores'] = scores
@@ -124,6 +148,15 @@ class SubmitAnswerAPIView(APIView):
         # 다음 질문이 없으면 최종 결과를 계산
         else:
             user_type = max(scores, key=scores.get)
+            # 마지막 문제에서 점수를 초기화(세션id 때문)
+            scores['SQUIRREL'] = 0
+            scores['RABBIT'] = 0
+            scores['PANDA'] = 0
+            scores['BEAVER'] = 0
+            scores['EAGLE'] = 0
+            scores['BEAR'] = 0
+            scores['DOLPHIN'] = 0
+
             if user:
                 Type.objects.create(user=user, user_type=user_type)
             return Response({
