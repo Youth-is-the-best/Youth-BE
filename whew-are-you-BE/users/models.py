@@ -12,7 +12,7 @@ class CustomUser(AbstractUser):
     major = models.CharField(max_length=20, null=True)                     # 전공
     is_premium = models.BooleanField(default=False)             # 프리미엄 여부
     deleted_at = models.DateTimeField(null=True, blank=True)    # 회원 탈퇴 시간
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     @staticmethod
     def get_user_or_none_by_username(username):
