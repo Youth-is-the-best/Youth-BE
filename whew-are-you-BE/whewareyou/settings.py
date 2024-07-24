@@ -187,3 +187,14 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.mysql',
+		'NAME': get_secret("DB_NAME"),
+		'USER': get_secret("DB_USER"), # root로 접속하여 DB를 만들었다면 'root'
+		'PASSWORD': get_secret("DB_PWD"),
+		'HOST': 'localhost',
+		'PORT': '3306'
+	}
+}
