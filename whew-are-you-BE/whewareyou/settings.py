@@ -183,18 +183,18 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 DATABASES = {
-	#'default': {
-	#	'ENGINE': 'django.db.backends.mysql',
-	#	'NAME': get_secret("DB_NAME"),
-	#	'USER': get_secret("DB_USER"), # root로 접속하여 DB를 만들었다면 'root'
-	#	'PASSWORD': get_secret("DB_PWD"),
-	#	'HOST': 'localhost',
-	#	'PORT': '3306'
-	#}
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+	'default': {
+		'ENGINE': 'django.db.backends.mysql',
+		'NAME': get_secret("DB_NAME"),
+		'USER': get_secret("DB_USER"), # root로 접속하여 DB를 만들었다면 'root'
+		'PASSWORD': get_secret("DB_PWD"),
+		'HOST': 'localhost',
+		'PORT': '3306'
+	}
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': BASE_DIR / 'db.sqlite3',
+    #}
 }
 
 CSRF_TRUSTED_ORIGINS = ['https://maknaengee.p-e.kr']
