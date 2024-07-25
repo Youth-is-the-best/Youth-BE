@@ -194,6 +194,10 @@ DATABASES = {
 		'HOST': get_secret("DB_HOSTNAME"),
 		'PORT': '3306'
 	}
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': BASE_DIR / 'db.sqlite3',
+    #}
 }
 
 CSRF_TRUSTED_ORIGINS = ['https://maknaengee.p-e.kr']
