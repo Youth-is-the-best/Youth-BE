@@ -146,7 +146,6 @@ class SubmitAnswerAPIView(APIView):
                 return Response({'error': 'answer_text is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 업데이트된 점수를 저장
-        request.session['scores'] = scores
         request.session['scores2'] = scores2
         request.session['scores3'] = scores3
 
@@ -176,6 +175,8 @@ class SubmitAnswerAPIView(APIView):
             scores['EAGLE'] = scores2['EAGLE'] + scores3['EAGLE']
             scores['BEAR'] = scores2['BEAR'] + scores3['BEAR']
             scores['DOLPHIN'] = scores2['DOLPHIN'] + scores3['DOLPHIN']
+
+            request.session['scores'] = scores
 
             if user:
                 # CustomUser의 type_result 필드 업데이트
