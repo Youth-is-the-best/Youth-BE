@@ -30,15 +30,11 @@ class SubmitAnswerAPIView(APIView):
     # 유형별 가중치를 저장하기 위함, 점수 누적을 위해 세션을 사용(비로그인 사용자를 위해)
     def initialize_scores(self, request):
         if 'scores' not in request.session:
-            request.session['scores'] = {
-                'SQUIRREL': 0,
-                'RABBIT': 0,
-                'PANDA': 0,
-                'BEAVER': 0,
-                'EAGLE': 0,
-                'BEAR': 0,
-                'DOLPHIN': 0
-            }
+            request.session['scores'] = { 'SQUIRREL': 0, 'RABBIT': 0, 'PANDA': 0, 'BEAVER': 0, 'EAGLE': 0, 'BEAR': 0, 'DOLPHIN': 0 }
+        if 'scores2' not in request.session:
+            request.session['scores2'] = { 'SQUIRREL': 0, 'RABBIT': 0, 'PANDA': 0, 'BEAVER': 0, 'EAGLE': 0, 'BEAR': 0, 'DOLPHIN': 0 }
+        if 'scores3' not in request.session:
+            request.session['scores3'] = { 'SQUIRREL': 0, 'RABBIT': 0, 'PANDA': 0, 'BEAVER': 0, 'EAGLE': 0, 'BEAR': 0, 'DOLPHIN': 0 }
 
     def post(self, request, *args, **kwargs):
         user = request.user if request.user.is_authenticated else None      # 사용자가 로그인한 상태이면 user 설정, 아니면 None으로 설정
@@ -64,6 +60,8 @@ class SubmitAnswerAPIView(APIView):
         # 일단 각 유형에 대한 총점을 0점으로 초기화
         self.initialize_scores(request)
         scores = request.session['scores']
+        scores2 = request.session['scores2']
+        scores3 = request.session['scores3']
 
         if question_id == 1:
                 if not return_year:
@@ -72,6 +70,14 @@ class SubmitAnswerAPIView(APIView):
                     return Response({'error': 'return_semester is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         elif question_id == 2:
+            scores2['SQUIRREL'] = 0
+            scores2['RABBIT'] = 0
+            scores2['PANDA'] = 0
+            scores2['BEAVER'] = 0
+            scores2['EAGLE'] = 0
+            scores2['BEAR'] = 0
+            scores2['DOLPHIN'] = 0
+
             # 에러 발생
             if not answer_text:
                 return Response({'error': 'answer_text is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -80,23 +86,31 @@ class SubmitAnswerAPIView(APIView):
             
             # 2번 문항의 가중치 15점을 특정 유형에 부여
             if answer_text == 'jobPreparation':
-                scores['SQUIRREL'] += 15
+                scores2['SQUIRREL'] += 15
             elif answer_text == 'internship':
-                scores['RABBIT'] += 15
+                scores2['RABBIT'] += 15
             elif answer_text == 'academicStress':
-                scores['PANDA'] += 15
+                scores2['PANDA'] += 15
             elif answer_text == 'selfDevelopment':
-                scores['BEAVER'] += 15
+                scores2['BEAVER'] += 15
             elif answer_text == 'diverseExperiences':
-                scores['EAGLE'] += 15
+                scores2['EAGLE'] += 15
             elif answer_text == 'financialBurden':
-                scores['BEAR'] += 15
+                scores2['BEAR'] += 15
             elif answer_text == 'mentalStability':
-                scores['PANDA'] += 15
+                scores2['PANDA'] += 15
             elif answer_text == 'newCareerExploration':
-                scores['DOLPHIN'] += 15
+                scores2['DOLPHIN'] += 15
 
         elif question_id == 3:
+            scores3['SQUIRREL'] = 0
+            scores3['RABBIT'] = 0
+            scores3['PANDA'] = 0
+            scores3['BEAVER'] = 0
+            scores3['EAGLE'] = 0
+            scores3['BEAR'] = 0
+            scores3['DOLPHIN'] = 0
+
             # 에러
             if not choices:
                 return Response({'error': 'choices is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -112,19 +126,19 @@ class SubmitAnswerAPIView(APIView):
                     
                     # 선택된 활동에 따라 특정 유형에 가중치를 부여, 겹치는걸 고려해서 if문으로만 구성
                     if choice in ['취업 준비', '자격증 취득', '대외활동 참여']:
-                        scores['SQUIRREL'] += rank_points[idx]
+                        scores3['SQUIRREL'] += rank_points[idx]
                     if choice in ['인턴 근무', '자기계발' '대외활동 참여', '동아리활동 참여', '취미활동']:
-                        scores['RABBIT'] += rank_points[idx]
+                        scores3['RABBIT'] += rank_points[idx]
                     if choice in ['여행', '새로운 인간관계 형성']:
-                        scores['EAGLE'] += rank_points[idx]
+                        scores3['EAGLE'] += rank_points[idx]
                     if choice in ['여행', '휴식', '독서', '혼자만의 시간', '가족과의 시간']:
-                        scores['PANDA'] += rank_points[idx]
+                        scores3['PANDA'] += rank_points[idx]
                     if choice in ['자격증 취득', '자기계발']:
-                        scores['BEAVER'] += rank_points[idx]
+                        scores3['BEAVER'] += rank_points[idx]
                     if choice in ['아르바이트']:
-                        scores['BEAR'] += rank_points[idx]
+                        scores3['BEAR'] += rank_points[idx]
                     if choice in ['취미활동', '진로 탐색']:
-                        scores['DOLPHIN'] += rank_points[idx]
+                        scores3['DOLPHIN'] += rank_points[idx]
 
         elif question_id == 4:
             # 에러 발생
@@ -133,6 +147,8 @@ class SubmitAnswerAPIView(APIView):
 
         # 업데이트된 점수를 저장
         request.session['scores'] = scores
+        request.session['scores2'] = scores2
+        request.session['scores3'] = scores3
 
         # 다음 질문을 검색
         next_question = Question.objects.filter(id__gt=question_id).first()
@@ -142,22 +158,24 @@ class SubmitAnswerAPIView(APIView):
             next_question_data = QuestionSerializer(next_question).data
             return Response({
                 'message': 'Answer submitted successfully.',
-                'scores': scores,
+                'scores2': scores2,
+                'scores3': scores3,
                 'next_question': next_question_data
             }, status=status.HTTP_200_OK)
+        
         # 다음 질문이 없으면 최종 결과를 계산
         else:
             user_type = max(scores, key=scores.get)
             user_type_instance = Type.objects.get(user_type=user_type)
 
-            # 마지막 문제에서 점수를 초기화(세션id 때문)
-            scores['SQUIRREL'] = 0
-            scores['RABBIT'] = 0
-            scores['PANDA'] = 0
-            scores['BEAVER'] = 0
-            scores['EAGLE'] = 0
-            scores['BEAR'] = 0
-            scores['DOLPHIN'] = 0
+            # 최종 점수
+            scores['SQUIRREL'] = scores2['SQUIRREL'] + scores3['SQUIRREL']
+            scores['RABBIT'] = scores2['RABBIT'] + scores3['RABBIT']
+            scores['PANDA'] = scores2['PANDA'] + scores3['PANDA']
+            scores['BEAVER'] = scores2['BEAVER'] + scores3['BEAVER']
+            scores['EAGLE'] = scores2['EAGLE'] + scores3['EAGLE']
+            scores['BEAR'] = scores2['BEAR'] + scores3['BEAR']
+            scores['DOLPHIN'] = scores2['DOLPHIN'] + scores3['DOLPHIN']
 
             if user:
                 # CustomUser의 type_result 필드 업데이트
