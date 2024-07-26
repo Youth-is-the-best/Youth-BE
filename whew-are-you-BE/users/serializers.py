@@ -13,10 +13,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     university = serializers.CharField(required=True)
     college = serializers.CharField(required=False)
     major = serializers.CharField(required=False)
+    referral = serializers.CharField(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['password', 'username', 'hash', 'first_name', 'university', 'college', 'major']
+        fields = ['password', 'username', 'hash', 'first_name', 'university', 'college', 'major', 'referral']
 
     def save(self, request):
         email_hash = self.validated_data['hash']
@@ -30,7 +31,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=self.validated_data['first_name'],
             university=self.validated_data['university'],
             college = self.validated_data.get('college', None),
-            major = self.validated_data.get('major', None)
+            major = self.validated_data.get('major', None),
+            referral = self.validated_data.get('referral', None),
         )
 
         # 비밀번호를 암호화
