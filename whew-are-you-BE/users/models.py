@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
+    first_name = models.CharField(max_length=30)
     username = models.CharField(max_length=30, unique=True)     #이게 pk가 되어선 안됨.
     email = models.EmailField()
     university = models.CharField(max_length=20)                # 대학
