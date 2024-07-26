@@ -4,6 +4,7 @@ from rest_framework import status
 from .models import Question, Answer, Choice, Type
 from .serializers import QuestionSerializer, AnswerSerializer, ChoiceSerializer
 from django.conf import settings
+import copy
 
 
 # 질문 받아오는 api
@@ -164,8 +165,6 @@ class SubmitAnswerAPIView(APIView):
         
         # 다음 질문이 없으면 최종 결과를 계산
         else:
-            user_type = max(scores, key=scores.get)
-            user_type_instance = Type.objects.get(user_type=user_type)
 
             # 최종 점수
             scores['SQUIRREL'] = scores2['SQUIRREL'] + scores3['SQUIRREL']
@@ -176,15 +175,19 @@ class SubmitAnswerAPIView(APIView):
             scores['BEAR'] = scores2['BEAR'] + scores3['BEAR']
             scores['DOLPHIN'] = scores2['DOLPHIN'] + scores3['DOLPHIN']
 
-            request.session['scores'] = scores
+            scores_result = copy.deepcopy(scores)
+            user_type = max(scores_result, key=scores.get)
+            user_type_instance = Type.objects.get(user_type=user_type)
 
             if user:
                 # CustomUser의 type_result 필드 업데이트
                 user.type_result = user_type_instance
                 user.save()
+
+            self.initialize_scores(request)
                 
             return Response({
                 'message': 'All questions answered.',
-                'scores': scores,
+                'scores': scores_result,
                 'user_type': user_type
             }, status=status.HTTP_200_OK)
