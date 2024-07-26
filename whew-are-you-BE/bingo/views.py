@@ -38,7 +38,8 @@ class BingoView(APIView):
                 
                 # 직접 입력한 항목의 경우
                 if choice == "0":
-                    BingoSpace.objects.create(user=user, bingo=bingo, title=title, location=index)
+                    self_content = CustomBingoItem.objects.create(user=user, title=title)
+                    BingoSpace.objects.create(user=user, bingo=bingo, title=title, self_content=self_content, location=index)
                 # 끌어온 항목의 경우
                 elif choice == "1":
                     recommend_content = ProvidedBingoItem.objects.get(id=item_id)
@@ -66,7 +67,7 @@ class BingoView(APIView):
         if not bingo:
             return Response({'error': 'No active bingo found'}, status=status.HTTP_404_NOT_FOUND)
         
-        bingo_spaces = BingoSpace.objects.filter(user=user).order_by('location')
+        bingo_spaces = BingoSpace.objects.filter(bingo=bingo).order_by('location')
         bingo_obj = []
         
         for item in bingo_spaces:
@@ -92,4 +93,68 @@ class BingoView(APIView):
             "end_date": bingo.end_date,
             "size": bingo.size,
             "bingo_obj": bingo_obj
+        }, status=status.HTTP_200_OK)
+    
+    
+    # 빙고판 수정하기
+    def put(self, request, *args, **kwargs):
+        user = request.user
+        bingo = Bingo.objects.get(user=user, is_active=True)
+        if not bingo:
+            return Response({'error': 'No active bingo found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        start_date = request.data.get('start_date')
+        end_date = request.data.get('end_date')
+        bingo_obj = request.data.get('bingo_obj')
+
+        if start_date:
+            bingo.start_date = start_date
+
+        if end_date:
+            bingo.end_date = end_date
+
+        if bingo_obj:
+
+            for index, item in enumerate(bingo_obj):
+                choice = item.get('choice')     # 직접 입력 항목이면 "0", 끌어온 항목이면 "1"
+                item_id = item.get('id')
+                item_id = int(item_id)      # item_id를 정수 처리
+                title = item.get('title')
+
+                bingo_spaces = BingoSpace.objects.filter(bingo=bingo).order_by('location')
+                for bingo_space in bingo_spaces:
+
+                    # item이 null이 아닌 경우
+                    if item:
+                        # 끌어오기 항목의 경우
+                        if choice == "1":
+                            recommend_content = ProvidedBingoItem.objects.get(id=item_id)
+                            bingo_space.recommend_content = recommend_content
+                            bingo_space.self_content = None
+                            bingo_space.save()
+                        # 직접 입력 항목의 경우
+                        elif choice == "0":
+                            # item_id가 있는 경우(이미 있는 직접 입력 항목의 경우)
+                            if item_id != "":
+                                self_content = CustomBingoItem.objects.get(id=item_id)
+                                bingo_space.self_content = self_content
+                                bingo_space.recommend_content = None
+                                bingo_space.save()
+                            # item_id가 없는 경우(새로 생성한 항목의 경우)
+                            else:
+                                self_content = CustomBingoItem.objects.create(user=user, title=title)
+                                bingo_space.self_content = self_content
+                                bingo_space.recommend_content = None
+                                bingo_space.save()
+                        # choice의 형식이 잘못된 경우
+                        else:
+                            return Response({'error': 'choice field should be 0 or 1'}, status=status.HTTP_400_BAD_REQUEST)
+
+        bingo.change_chance -= 1        # 빙고 수정 기회 줄이기     
+        bingo.save()
+
+        return Response({
+            'message': 'bingo set up success',
+            'username': user.username,
+            'change_chance': bingo.change_chance
         }, status=status.HTTP_200_OK)

@@ -43,6 +43,7 @@ class ProvidedBingoItem(BaseBingoItem):
 class CustomBingoItem(BaseBingoItem):
     is_editable = models.BooleanField(default=True)
 
+
 # 빙고 판 모델
 class Bingo(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)     # 빙고판의 사용자
