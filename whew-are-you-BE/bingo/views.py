@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 
 # 빙고 저장 & 불러오기
-class BingoView(APIView):
+class BingoAPIView(APIView):
     
     permission_classes = [IsAuthenticatedOrReadOnly]
 
