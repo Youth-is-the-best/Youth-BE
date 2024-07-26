@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from users.models import CustomUser
 
 # 빙고 판 모델
 class Bingo(models.Model):
@@ -22,3 +23,39 @@ class BingoSpace(models.Model):
     recommend_content = models.ForeignKey(null=True, blank=True)        # 추천 항목
     self_content = models.ForeignKey(null=True, blank=True)     # 직접 입력 항목
     review = models.ForeignKey(null=True, blank=True)       # 후기글
+
+
+# 빙고 항목 베이스 모델
+class BaseBingoItem(models.Model):
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    BINGO_CATEGORIES = [
+        ('CAREER', '채용'),
+        ('CERTIFICATE', '자격증'),
+        ('OUTBOUND', '대외활동'),
+        ('CONTEST', '공모전'),
+        ('SELFCARE', '취미/여행/자기계발/휴식'),
+    ]
+    title = models.CharField(max_length=50)
+    large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
+    small_category = models.CharField(max_length=20, null=True, blank=True)
+    duty = models.CharField(max_length=50, null=True) #직무
+    employment_form = models.CharField(max_length=50, null=True) #채용형태
+    area = models.CharField(max_length=50, null=True) #근무/활동지역
+    start_date = models.DateField(null=True)
+    end_date = models.DateField(null=True)
+    host = models.CharField(max_length=50, null=True) 
+    app_fee = models.IntegerField(null=True)
+    prep_period = models.IntegerField(null=True)
+    app_due = models.DateField(null=True)
+    field = models.CharField(null=True)
+    image = models.ImageField(null=True)
+
+    class Meta:
+        abstract = True
+
+class ProvidedBingoItem(BaseBingoItem):
+    type = models.ForeignKey('typetest.Type', on_delete=models.SET_NULL, null=True)
+    is_editable = models.BooleanField(default=False)
+
+class CustomBingoItem(BaseBingoItem):
+    is_editable = models.BooleanField(default=True)
