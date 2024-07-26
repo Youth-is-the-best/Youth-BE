@@ -59,6 +59,7 @@ DJANGO_APPS = [
 PROJECT_APPS = [
     'users',
     'typetest',
+    'bingo',
 ]
 
 THIRD_PARTY_APPS = [
