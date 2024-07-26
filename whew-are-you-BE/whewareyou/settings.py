@@ -58,20 +58,22 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     'users',
+    'typetest',
 ]
 
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'drf_yasg'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware'
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -102,13 +104,6 @@ WSGI_APPLICATION = 'whewareyou.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -183,9 +178,30 @@ DEFAULT_FROM_EMAIL = '휴알유<dev.whewareyou@gmail.com>'
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOWED_ORIGINS = [ 
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://localhost:3000",
-    "https://127.0.0.1:3000",
-]
+# CORS_ALLOWED_ORIGINS = [ 
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "https://localhost:3001",
+#     "https://127.0.0.1:3001",
+#     "https://maknaengee.p-e.kr"
+# ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+DATABASES = {
+	'default': {
+		'ENGINE': 'django.db.backends.mysql',
+		'NAME': get_secret("DB_NAME"),
+		'USER': get_secret("DB_USER"), # root로 접속하여 DB를 만들었다면 'root'
+		'PASSWORD': get_secret("DB_PWD"),
+		'HOST': get_secret("DB_HOSTNAME"),
+		'PORT': '3306'
+	}
+    # 'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': BASE_DIR / 'db.sqlite3',
+    # }
+}
+
+CSRF_TRUSTED_ORIGINS = ['https://maknaengee.p-e.kr']
+

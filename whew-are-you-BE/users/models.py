@@ -17,6 +17,7 @@ class CustomUser(AbstractUser):
     type_result = models.ForeignKey('typetest.Type', on_delete=models.SET_NULL, null=True)    # 사용자의 유형 결과
     referral = models.CharField(max_length=30, null=True, blank=True)
 
+
     @staticmethod
     def get_user_or_none_by_username(username):
         try:
