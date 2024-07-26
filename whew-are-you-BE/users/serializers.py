@@ -10,14 +10,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     hash = serializers.CharField(required=True)
     first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
     university = serializers.CharField(required=True)
     college = serializers.CharField(required=False)
     major = serializers.CharField(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['password', 'username', 'hash', 'first_name', 'last_name', 'university', 'college', 'major']
+        fields = ['password', 'username', 'hash', 'first_name', 'university', 'college', 'major']
 
     def save(self, request):
         email_hash = self.validated_data['hash']
@@ -29,7 +28,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             username=self.validated_data['username'],
             email=email,
             first_name=self.validated_data['first_name'],
-            last_name=self.validated_data['last_name'],
             university=self.validated_data['university'],
             college = self.validated_data.get('college', None),
             major = self.validated_data.get('major', None)
