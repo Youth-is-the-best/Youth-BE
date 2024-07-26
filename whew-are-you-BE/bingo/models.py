@@ -23,6 +23,7 @@ class BingoSpace(models.Model):
     recommend_content = models.ForeignKey(null=True, blank=True)        # 추천 항목
     self_content = models.ForeignKey(null=True, blank=True)     # 직접 입력 항목
     review = models.ForeignKey(null=True, blank=True)       # 후기글
+    location = models.IntegerField()    # 빙고 칸 위치
 
 
 # 빙고 항목 베이스 모델
