@@ -45,4 +45,9 @@ class BingoView(APIView):
                 # 잘못된 choice 형식의 경우
                 else:
                     return Response({'error': 'choice field should be 0 or 1'}, status=status.HTTP_400_BAD_REQUEST)
-            
+        
+        return Response({
+            'message': 'bingo set up success',
+            'user': user.username,
+            'change_chance': bingo.change_chance
+        }, status=status.HTTP_200_OK)
