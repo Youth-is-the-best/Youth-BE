@@ -191,7 +191,7 @@ class BingoObjAPIView(APIView):
                 item_serialized = CustomBingoItemSerializer(item)
                 data['bingo_item'] = item_serialized
 
-            # 2. 빙고 칸의 투두 항목 정보 불러오기
+            # 3. 빙고 칸의 투두 항목 정보 불러오기
                 todo = ToDo.objects.filter(bingo_space=target)
                 todo_serialized = ToDoSerializer(todo, many=True)
                 data['todo'] = todo_serialized
@@ -199,10 +199,6 @@ class BingoObjAPIView(APIView):
             return Response(data, status=status.HTTP_200_OK)
         except:
             return Response({"error": "서버 오류가 발생했습니다. 백엔드를 위로해주세요."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def post(self, request, obj_id, *args, **kwargs):
-        # BingoSpace 모델에 is_empty 필드를 두어 True인 것만 허용하든지 해야할듯
-        pass
 
     def put(self, request, obj_id, *args, **kwargs):
         try:
@@ -215,6 +211,7 @@ class BingoObjAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
 
+            #사실상 비어있는 BingoSpace에 채워야할 경우도 있기 때문에 target으로부터 바로 종류를 가져올 수 없을 수 있다.
             choice = request.data.get('choice')
             if choice == "0": #직접입력의 경우
                 serializer = CustomBingoItemSerializer(target.self_content, data=request.data.get('bingo_item'))
@@ -236,4 +233,33 @@ class BingoObjAPIView(APIView):
                 
         return Response({"success": "정상적으로 수정되었습니다."}, status=status.HTTP_200_OK)
         
+    def delete(self, request, obj_id, *args, **kwargs):
+        try:
+            target = BingoSpace.objects.get(id=obj_id)
+        except BingoSpace.DoesNotExist:
+            return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        #만약 init 안된 빙고칸을 삭제하려 한다면
+        if target.recommend_content is False and target.self_content is False:
+            return Response({"error": "빙고항목이 이미 비어있습니다."}, status=status.HTTP_202_ACCEPTED)
+        
+        try:
+            #투두 삭제
+            todo = ToDo.objects.filter(bingo_space=target)
+            todo.delete()
+
+            #빙고 항목 삭제
+            if target.self_content:
+                item = CustomBingoItem.objects.get(target.self_content)
+                item.delete()
+
+            #빙고 칸 초기화
+            pk_field_name = target._meta.pk.name
+            for field in target._meta.get_fields():
+                fields_to_leave = [pk_field_name, 'user', 'bingo', 'location']
+                if not field.name in fields_to_leave:
+                    setattr(target, field.name, None)
+        except Exception as e:
+            return Response({"error": "서버 오류 발생. 에러 메시지를 백엔드에게 보여주세요.", "err_msg": e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
+        return Response({"success": "정상적으로 삭제되었습니다."}, status=status.HTTP_200_OK)     
 

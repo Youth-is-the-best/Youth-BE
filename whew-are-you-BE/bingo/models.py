@@ -54,8 +54,8 @@ class BingoSpace(models.Model):
     bingo = models.ForeignKey(Bingo, on_delete=models.CASCADE)      # 빙고
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)        # 사용자
     is_executed = models.BooleanField(default=False)        # 실행 완료 여부
-    start_date = models.DateField()     # 항목 시작 날짜
-    end_date = models.DateField()       # 항목 종료 날짜
+    start_date = models.DateField(null=True)     # 항목 시작 날짜
+    end_date = models.DateField(null=True)       # 항목 종료 날짜
     image = models.ImageField(null=True, blank=True)        # 나중에 후기글의 대표 이미지
     recommend_content = models.ForeignKey(ProvidedBingoItem, null=True, blank=True, on_delete=models.CASCADE)        # 추천 항목
     self_content = models.ForeignKey(CustomBingoItem, null=True, blank=True, on_delete=models.CASCADE)     # 직접 입력 항목
