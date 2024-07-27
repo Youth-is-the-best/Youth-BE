@@ -67,3 +67,10 @@ class BingoSpace(models.Model):
     review = models.ForeignKey(Review, null=True, blank=True, on_delete=models.CASCADE)       # 후기글
     location = models.IntegerField()    # 빙고 칸 위치
 
+# 빙고 투두 항목
+class ToDo(models.Model):
+    title = models.CharField(max_length=50)
+    is_completed = models.BooleanField(default=False)
+    bingo = models.ForeignKey()
+    bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  
