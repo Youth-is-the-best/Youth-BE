@@ -11,23 +11,24 @@ class InformationImageSerializer(serializers.ModelSerializer):
 
 # 정보글 시리얼라이저
 class InformationSerializer(serializers.ModelSerializer):
-    images = InformationImageSerializer(many=True)
+    image = InformationImageSerializer(many=True)
     id = serializers.ReadOnlyField()
 
     class Meta:
         model = Information
-        fields = ['id', 'title', 'content', 'large_category', 'images']
+        fields = ['id', 'title', 'content', 'large_category', 'image']
 
     def create(self, validated_data):
-        images_data = self.context['request'].FILES.getlist('images')
+        images_data = self.context['request'].FILES.getlist('image')
         user = self.context['request'].user
         information = Information.objects.create(user=user, **validated_data)
+
         for image_data in images_data:
             InformationImage.objects.create(information=information, image=image_data)
         return information
     
     def update(self, instance, validated_data):
-        images_data = self.context['request'].FILES.getlist('images')
+        images_data = self.context['request'].FILES.getlist('image')
         instance.title = validated_data.get('title', instance.title)
         instance.content = validated_data.get('content', instance.content)
         instance.large_category = validated_data.get('large_category', instance.large_category)
