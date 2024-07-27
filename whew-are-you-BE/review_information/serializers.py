@@ -27,6 +27,16 @@ class InformationSerializer(serializers.ModelSerializer):
         return information
     
     def update(self, instance, validated_data):
+        images_data = validated_data.pop('images', None)
         instance.title = validated_data.get('title', instance.title)
         instance.content = validated_data.get('content', instance.content)
         instance.large_category = validated_data.get('large_category', instance.large_category)
+        instance.save()
+
+        if images_data is not None:
+            # Clear existing images if any
+            instance.images.all().delete()
+            for image_data in images_data:
+                InformationImage.objects.create(information=instance, **image_data)
+
+        return instance
