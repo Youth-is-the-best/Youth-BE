@@ -16,11 +16,11 @@ class Review(models.Model):
         ('REST', '휴식')
     ]
 
-    bingo_space = models.OneToOneField(BingoSpace, null=True, blank=True, related_name='review')      # 빙고 인증용 후기글이면 빙고칸과 연결
+    bingo_space = models.OneToOneField(BingoSpace, null=True, blank=True, related_name='review', on_delete=models.CASCADE)      # 빙고 인증용 후기글이면 빙고칸과 연결
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review')
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
-    todo = models.OneToOneField(ToDo)
+    todo = models.OneToOneField(ToDo, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     content = models.TextField()
