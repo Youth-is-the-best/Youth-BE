@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
-class InformationView(APIView):
+class InformationAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAdminOrReadOnly]
 
