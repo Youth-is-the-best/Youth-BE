@@ -19,7 +19,7 @@ class BaseBingoItem(models.Model):
     duty = models.CharField(max_length=50, null=True) #직무
     employment_form = models.CharField(max_length=50, null=True) #채용형태
     area = models.CharField(max_length=50, null=True) #근무/활동지역
-    start_date = models.DateField(null=True)
+    start_date = models.DateField(null=True) #이건 빙고시작/종료일자가 아니라 진짜 행사 날짜임.
     end_date = models.DateField(null=True)
     host = models.CharField(max_length=50, null=True) 
     app_fee = models.IntegerField(null=True)
