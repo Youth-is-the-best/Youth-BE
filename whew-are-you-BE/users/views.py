@@ -164,10 +164,15 @@ class VerifyMailView(APIView):
         #is_valid=True인 것 고르기
         #verif_code 일치하는 것 고르기
         five_minutes_ago = timezone.now() - timedelta(minutes=5)
-        verif_objects = Verif.objects.filter(email=email, verif_code=verif_code, is_valid=True, created_at__gte=five_minutes_ago)
-
+        #인증번호부터 검증
+        verif_objects = Verif.objects.filter(email=email, verif_code=verif_code, is_valid=True)
         if not verif_objects.exists():
             return Response({"error": "유효하지 않은 인증번호입니다.", "short_msg": "invalid_code"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Check if the time limit has been exceeded
+        verif_objects = verif_objects.filter(created_at__gte=five_minutes_ago)
+        if not verif_objects.exists():
+            return Response({"error": "인증번호가 만료되었습니다.", "short_msg": "code_expired"}, status=status.HTTP_401_UNAUTHORIZED)
         
         #무결성 hash값(이메일을 대신) 생성, 저장 
         secret_key = base64.b64decode(get_secret("B64_HMAC_KEY"))
