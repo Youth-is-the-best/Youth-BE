@@ -1,9 +1,12 @@
 from rest_framework.views import APIView
+from rest_framework import generics
 from users.models import CustomUser
 from .models import Bingo, BingoSpace, ProvidedBingoItem, CustomBingoItem
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from .serializers import BingoItemSerializer
+from users.permissions import IsAuthor
 
 
 # 빙고 저장 & 불러오기
@@ -158,3 +161,16 @@ class BingoAPIView(APIView):
             'username': user.username,
             'change_chance': bingo.change_chance
         }, status=status.HTTP_200_OK)
+    
+# 빙고 항목 APIView    
+class BingoItemAPIView(generics.RetrieveUpdateDestroyAPIView, generics.CreateAPIView):
+    queryset = CustomBingoItem.objects.all()
+    serializer_class = BingoItemSerializer
+    lookup_field_kwarg = "item_id"
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            self.permission_classes = [IsAuthenticated]
+        else:
+            self.permission_classes = [IsAuthenticated, IsAuthor]
+        return super(BingoItemAPIView, self).get_permissions()
