@@ -61,3 +61,12 @@ class BingoSpace(models.Model):
     recommend_content = models.ForeignKey(ProvidedBingoItem, null=True, blank=True, on_delete=models.CASCADE)        # 추천 항목
     self_content = models.ForeignKey(CustomBingoItem, null=True, blank=True, on_delete=models.CASCADE)     # 직접 입력 항목
     location = models.IntegerField()    # 빙고 칸 위치
+
+
+# 빙고 투두 항목
+class ToDo(models.Model):
+    title = models.CharField(max_length=50)
+    is_completed = models.BooleanField(default=False)
+    bingo = models.ForeignKey()
+    bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  

@@ -83,8 +83,8 @@ class BingoAPIView(APIView):
             elif item.self_content:
                 bingo_obj.append({
                     "choice": "0",
-                    "id": str(item.recommend_content.id),
-                    "title": item.recommend_content.title
+                    "id": str(item.self_content.id),
+                    "title": item.self_content.title
                 })
             else:
                 bingo_obj.append(None)
@@ -174,3 +174,10 @@ class BingoItemAPIView(generics.RetrieveUpdateDestroyAPIView, generics.CreateAPI
         else:
             self.permission_classes = [IsAuthenticated, IsAuthor]
         return super(BingoItemAPIView, self).get_permissions()
+
+"""
+    빙고 항목 APIView
+    /bingo/items/12341241/ 이런식으로 요청이 올거임.
+    맨 마지막 id가 뭐냐에 따라서 
+
+"""
