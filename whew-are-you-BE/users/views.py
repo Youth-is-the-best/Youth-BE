@@ -134,25 +134,33 @@ class VerifyMailView(APIView):
 
         with open(json_path, 'r', encoding='utf-8') as file:
             school_data = json.load(file)
-        school_names = school_data.get(domain)
-        if school_names is None :
+        school_name = school_data.get(domain)
+        if school_name is None :
             pass
             #TODO 실배포시 살리기
             #return Response({"error": "학교 이메일 주소만 가입 가능합니다. ", "short_msg": "notschoolemail"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            school_name = school_name[0]
 
         #인증번호 생성 후 django.mail을 통해, 인증번호 이메일 발송
         #인증번호 생성
         verif_code = str(random.randint(100000, 999999))
         try:
-            new_verif_request = Verif(email=email, verif_code=verif_code)
+            #해당 이메일에 대한 모든 이전 요청을 무효화
+            prev_verif = Verif.objects.filter(email=email)
+            for req in prev_verif:
+                req.is_valid = False
+                req.save()
+            #학교 정보를 넣어 새로운 Verif 만들기    
+            new_verif_request = Verif(email=email, verif_code=verif_code, school=school_name)
             new_verif_request.save()
             send_email(email, verif_code)
         except Exception as e:
-            print("오류 났어!!!!!!"+e)
+            print(e)
             return Response({"error": "발송 중 서버 오류가 발생했습니다. 잠시 후 다시 시도 바랍니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        if school_names is None :
+        if school_name is None :
             return Response({"error": "학교 이메일 주소만 가입 가능합니다. 단 테스트 기간에는 사용 가능합니다. 인증번호는 메일로 발송되었습니다.", "short_msg": "not_school_email"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({f"success": "인증번호가 메일로 발송되었습니다.", "school_names": school_names}, status=status.HTTP_200_OK)
+        return Response({f"success": "인증번호가 메일로 발송되었습니다."}, status=status.HTTP_200_OK)
     
     def validate_6code(self, request):
         email = request.data.get('email')
@@ -164,10 +172,15 @@ class VerifyMailView(APIView):
         #is_valid=True인 것 고르기
         #verif_code 일치하는 것 고르기
         five_minutes_ago = timezone.now() - timedelta(minutes=5)
-        verif_objects = Verif.objects.filter(email=email, verif_code=verif_code, is_valid=True, created_at__gte=five_minutes_ago)
-
+        #인증번호부터 검증
+        verif_objects = Verif.objects.filter(email=email, verif_code=verif_code, is_valid=True)
         if not verif_objects.exists():
             return Response({"error": "유효하지 않은 인증번호입니다.", "short_msg": "invalid_code"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        #인증번호 맞더라도 5분 지나면 
+        verif_objects = verif_objects.filter(created_at__gte=five_minutes_ago)
+        if not verif_objects.exists():
+            return Response({"error": "인증번호가 만료되었습니다.", "short_msg": "code_expired"}, status=status.HTTP_401_UNAUTHORIZED)
         
         #무결성 hash값(이메일을 대신) 생성, 저장 
         secret_key = base64.b64decode(get_secret("B64_HMAC_KEY"))
@@ -176,7 +189,8 @@ class VerifyMailView(APIView):
         base64_hash = base64.b64encode(hash).decode()
 
         assert (verif_objects.count() == 1)
+        school_name = verif_objects.first().school
         verif_objects.update(is_valid=False, hash=base64_hash, is_fulfilled=True)
 
-        return Response({"success": "인증이 완료되었습니다.", "hash": base64_hash}, status=status.HTTP_200_OK)
+        return Response({"success": "인증이 완료되었습니다.", "hash": base64_hash, "school": school_name}, status=status.HTTP_200_OK)
 
