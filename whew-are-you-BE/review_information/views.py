@@ -9,13 +9,16 @@ from rest_framework.parsers import MultiPartParser, FormParser
 # Create your views here.
 class InformationAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [IsAdminOrReadOnly]
+    # permission_classes = [IsAdminOrReadOnly]
 
     def post(self, request, *args, **kwargs):
+        print(request.FILES)
         serializer = InformationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, *args, **kwargs):
