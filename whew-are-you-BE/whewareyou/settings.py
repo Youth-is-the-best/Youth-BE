@@ -60,6 +60,7 @@ PROJECT_APPS = [
     'users',
     'typetest',
     'bingo',
+    'review_information',
 ]
 
 THIRD_PARTY_APPS = [
