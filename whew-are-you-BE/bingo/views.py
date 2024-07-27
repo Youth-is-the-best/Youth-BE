@@ -22,27 +22,37 @@ class BingoAPIView(APIView):
         end_date = request.data.get('end_date')
         bingo_obj = request.data.get('bingo_obj')
 
-        if size != 9 or size != 16:
+        print(f"Request data: {request.data}")
+
+        if not isinstance(size, int) or not size in [9, 16]:
             return Response({'error': 'size field should be 9 or 16'}, status=status.HTTP_400_BAD_REQUEST)
         
+        #기존에 생성되다 만 Bingo객체를 모두 비활성 처리
+        inactive = Bingo.objects.filter(user=user, is_active=True)
+        for bingo in inactive:
+            bingo.is_active = False
+            bingo.save()
+            
         Bingo.objects.create(user=user, size=size, start_date=start_date, end_date=end_date)
         bingo = Bingo.objects.get(user=user, is_active=True)
 
         for index, item in enumerate(bingo_obj):
-            choice = item.get('choice')     # 직접 입력 항목이면 "0", 끌어온 항목이면 "1"
-            item_id = item.get('id')
-            item_id = int(item_id)      # item_id를 정수 처리
-            title = item.get('title')
-
             # null이 아닌 경우
             if item:
+                choice = item.get('choice')     # 직접 입력 항목이면 "0", 끌어온 항목이면 "1"
+                item_id = item.get('id')
+                if item_id:
+                    item_id = int(item_id)      # item_id를 정수 처리
+                title = item.get('title')
+
                 if not choice:      # choice 입력하지 않으면 에러
                     return Response({'error': 'choice field is required'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # 직접 입력한 항목의 경우
                 if choice == "0":
-                    self_content = CustomBingoItem.objects.create(user=user, title=title)
-                    BingoSpace.objects.create(user=user, bingo=bingo, title=title, self_content=self_content, location=index)
+                    self_content = CustomBingoItem.objects.create(author=user, title=title)
+                    BingoSpace.objects.create(user=user, bingo=bingo, self_content=self_content, location=index, start_date=None, end_date=None)
+
                 # 끌어온 항목의 경우
                 elif choice == "1":
                     recommend_content = ProvidedBingoItem.objects.get(id=item_id)
@@ -54,7 +64,7 @@ class BingoAPIView(APIView):
             # null인 경우
             if not item:
                 BingoSpace.objects.create(user=user, bingo=bingo, location=index)
-        
+
         return Response({
             'message': 'bingo set up success',
             'user': user.username,
