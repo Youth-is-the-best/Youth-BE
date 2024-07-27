@@ -3,11 +3,6 @@ from django.conf import settings
 from users.models import CustomUser
 
 
-# 일단 임시로 만들어 두기
-class Review(models.Model):
-    title = models.CharField(max_length=50)
-
-
 # 빙고 항목 베이스 모델
 class BaseBingoItem(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -64,13 +59,13 @@ class BingoSpace(models.Model):
     image = models.ImageField(null=True, blank=True)        # 나중에 후기글의 대표 이미지
     recommend_content = models.ForeignKey(ProvidedBingoItem, null=True, blank=True, on_delete=models.CASCADE)        # 추천 항목
     self_content = models.ForeignKey(CustomBingoItem, null=True, blank=True, on_delete=models.CASCADE)     # 직접 입력 항목
-    review = models.ForeignKey(Review, null=True, blank=True, on_delete=models.CASCADE)       # 후기글
     location = models.IntegerField()    # 빙고 칸 위치
+
 
 # 빙고 투두 항목
 class ToDo(models.Model):
     title = models.CharField(max_length=50)
     is_completed = models.BooleanField(default=False)
-    bingo = models.ForeignKey()
+    bingo = models.ForeignKey(Bingo, on_delete=models.CASCADE)
     bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  
