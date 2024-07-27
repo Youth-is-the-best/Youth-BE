@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework import generics
 from users.models import CustomUser
-from .models import Bingo, BingoSpace, ProvidedBingoItem, CustomBingoItem
+from .models import Bingo, BingoSpace, ProvidedBingoItem, CustomBingoItem, ToDo
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from .serializers import BingoItemSerializer
+from .serializers import *
 from users.permissions import IsAuthor
 
 
@@ -162,22 +162,78 @@ class BingoAPIView(APIView):
             'change_chance': bingo.change_chance
         }, status=status.HTTP_200_OK)
     
-# 빙고 항목 APIView    
-class BingoItemAPIView(generics.RetrieveUpdateDestroyAPIView, generics.CreateAPIView):
-    queryset = CustomBingoItem.objects.all()
-    serializer_class = BingoItemSerializer
-    lookup_field_kwarg = "item_id"
 
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            self.permission_classes = [IsAuthenticated]
-        else:
-            self.permission_classes = [IsAuthenticated, IsAuthor]
-        return super(BingoItemAPIView, self).get_permissions()
+class BingoObjAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsAuthor]
+    
+    def get(self, request, obj_id, *args, **kwargs):
+        try:
+            target = BingoSpace.objects.get(id=obj_id)
+        except BingoSpace.DoesNotExist:
+            return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        try: 
+            data = {}
+            # 1. 빙고 칸 정보 불러오기
+            target_serialized = BingoSpaceSerializer(target)
+            data['bingo_space'] = target_serialized
 
-"""
-    빙고 항목 APIView
-    /bingo/items/12341241/ 이런식으로 요청이 올거임.
-    맨 마지막 id가 뭐냐에 따라서 
+            # 2. 빙고 항목 정보 불러오기
+            if target.recommend_content:
+                assert(target.self_content == False)
+                item = ProvidedBingoItem.objects.get(target.recommend_content)
+                item_serialized = ProvidedBingoItemSerializer(item)
+                data['bingo_item'] = item_serialized
 
-"""
+            if target.self_content:
+                assert(target.recommend_content == False)
+                item = CustomBingoItem.objects.get(target.self_content)
+                item_serialized = CustomBingoItemSerializer(item)
+                data['bingo_item'] = item_serialized
+
+            # 2. 빙고 칸의 투두 항목 정보 불러오기
+                todo = ToDo.objects.filter(bingo_space=target)
+                todo_serialized = ToDoSerializer(todo, many=True)
+                data['todo'] = todo_serialized
+
+            return Response(data, status=status.HTTP_200_OK)
+        except:
+            return Response({"error": "서버 오류가 발생했습니다. 백엔드를 위로해주세요."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request, obj_id, *args, **kwargs):
+        # BingoSpace 모델에 is_empty 필드를 두어 True인 것만 허용하든지 해야할듯
+        pass
+
+    def put(self, request, obj_id, *args, **kwargs):
+        try:
+            target = BingoSpace.objects.get(id=obj_id)
+        except BingoSpace.DoesNotExist:
+            return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        try: 
+            serializer = BingoSpaceSerializer(target, data=request.data.get('bingo_space'))
+            if serializer.is_valid():
+                serializer.save()
+
+            choice = request.data.get('choice')
+            if choice == "0": #직접입력의 경우
+                serializer = CustomBingoItemSerializer(target.self_content, data=request.data.get('bingo_item'))
+                if serializer.is_valid():
+                    serializer.save()
+            elif choice == "1": #끌어오기항목의 경우
+                serializer = ProvidedBingoItemSerializer(target.recommend_content, data=request.data.get('bingo_item'))
+                if serializer.is_valid():
+                    serializer.save()
+            else:
+                raise ValueError('choice 값은 \'0\' 또는 \'1\'만 가능합니다.')
+            
+            serializer = ToDoSerializer(target, data=request.data.get['todo'], many=True)
+            if serializer.is_valid():
+                serializer.save()
+
+        except Exception as e:
+            return Response({"error": "형식이 올바르지 못한 요청입니다.", "err_msg": e}, status=status.HTTP_400_BAD_REQUEST)                                                
+                
+        return Response({"success": "정상적으로 수정되었습니다."}, status=status.HTTP_200_OK)
+        
+
