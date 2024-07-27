@@ -12,8 +12,9 @@ class InformationAPIView(APIView):
     # permission_classes = [IsAdminOrReadOnly]
 
     def post(self, request, *args, **kwargs):
+        images = request.FILES
         print(request.FILES)
-        serializer = InformationSerializer(data=request.data)
+        serializer = InformationSerializer(data=request.data, context={'request':request})
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -23,5 +24,5 @@ class InformationAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         information = Information.objects.all()
-        serializer = InformationSerializer(information, many=True)
-        return Response(serializer.data)
+        serializer = InformationGETSerializer(information, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

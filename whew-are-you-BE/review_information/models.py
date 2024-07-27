@@ -17,7 +17,7 @@ class Review(models.Model):
     ]
 
     bingo_space = models.OneToOneField(BingoSpace, null=True, blank=True, related_name='review', on_delete=models.CASCADE)      # 빙고 인증용 후기글이면 빙고칸과 연결
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review', blank=True, null=True)
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
     todo = models.OneToOneField(ToDo, on_delete=models.CASCADE)
@@ -45,15 +45,15 @@ class Information(models.Model):
         ('REST', '휴식')
     ]
 
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='information')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='information', blank=True, null=True)
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     content = models.TextField()
 
 
 # 정보글 이미지
 class InformationImage(models.Model):
-    Information = models.ForeignKey(Information, on_delete=models.CASCADE, related_name='images')
+    information = models.ForeignKey(Information, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='information/')
