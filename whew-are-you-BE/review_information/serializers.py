@@ -19,15 +19,15 @@ class InformationSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'content', 'large_category', 'images']
 
     def create(self, validated_data):
-        images_data = validated_data.pop('images', [])
+        images_data = self.context['request'].FILES.getlist('images')
         user = self.context['request'].user
         information = Information.objects.create(user=user, **validated_data)
         for image_data in images_data:
-            InformationImage.objects.create(information=information, **image_data)
+            InformationImage.objects.create(information=information, image=image_data)
         return information
     
     def update(self, instance, validated_data):
-        images_data = validated_data.pop('images', None)
+        images_data = self.context['request'].FILES.getlist('images')
         instance.title = validated_data.get('title', instance.title)
         instance.content = validated_data.get('content', instance.content)
         instance.large_category = validated_data.get('large_category', instance.large_category)
@@ -37,6 +37,6 @@ class InformationSerializer(serializers.ModelSerializer):
             # Clear existing images if any
             instance.images.all().delete()
             for image_data in images_data:
-                InformationImage.objects.create(information=instance, **image_data)
+                InformationImage.objects.create(information=instance, image=image_data)
 
         return instance

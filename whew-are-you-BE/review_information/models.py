@@ -55,5 +55,5 @@ class Information(models.Model):
 
 # 정보글 이미지
 class InformationImage(models.Model):
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='information_images')
+    review = models.ForeignKey(Information, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='information/')

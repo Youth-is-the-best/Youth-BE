@@ -9,7 +9,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 # Create your views here.
 class InformationAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [IsAdminOrReadOnly]
+    # permission_classes = [IsAdminOrReadOnly]
 
     def post(self, request, *args, **kwargs):
         serializer = InformationSerializer(data=request.data)
