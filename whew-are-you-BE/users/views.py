@@ -41,12 +41,14 @@ class RegisterView(APIView):
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.save(request)
+            user_serializer = CustomUserSerializer(user)
+            user_data = user_serializer.data
             token = RefreshToken.for_user(user)
             refresh_token = str(token)
             access_token = str(token.access_token)
             res = Response(
                 {
-                    "user": serializer.data,
+                    "user": user_data,
                     "message": "register success",
                     "token": {
                         "access_token": access_token,
@@ -136,6 +138,7 @@ class VerifyMailView(APIView):
             school_data = json.load(file)
         school_name = school_data.get(domain)
         if school_name is None :
+            school_name = "멋쟁이사자처럼대학"
             pass
             #TODO 실배포시 살리기
             #return Response({"error": "학교 이메일 주소만 가입 가능합니다. ", "short_msg": "notschoolemail"}, status=status.HTTP_400_BAD_REQUEST)
