@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from users.models import CustomUser
-from review_information.models import Review
 
 
 # 빙고 항목 베이스 모델
@@ -67,6 +66,6 @@ class BingoSpace(models.Model):
 class ToDo(models.Model):
     title = models.CharField(max_length=50)
     is_completed = models.BooleanField(default=False)
-    bingo = models.ForeignKey()
+    bingo = models.ForeignKey(Bingo, on_delete=models.CASCADE)
     bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  

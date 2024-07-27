@@ -45,17 +45,15 @@ class Information(models.Model):
         ('REST', '휴식')
     ]
 
-    bingo_space = models.OneToOneField(BingoSpace, null=True, blank=True, related_name='information')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='information')
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
-    todo = models.OneToOneField(ToDo)
     start_date = models.DateField()
     end_date = models.DateField()
     content = models.TextField()
 
 
 # 정보글 이미지
-class ReviewImage(models.Model):
+class InformationImage(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='information_images')
     image = models.ImageField(upload_to='information/')
