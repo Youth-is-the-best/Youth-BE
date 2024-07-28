@@ -86,14 +86,24 @@ class BingoAPIView(APIView):
         bingo_obj = []
         
         for item in bingo_spaces:
+            # 빙고 칸의 실행 여부 is_executed (실행 되었으면 1, 안 되었으면 0)
+            if item.is_executed == True:
+                is_executed = 1
+            else:
+                is_executed = 0
+
             if item.recommend_content:
                 bingo_obj.append({
+                    "location": item.location,
+                    "is_executed": is_executed,
                     "choice": "1",
                     "id": str(item.recommend_content.id),
                     "title": item.recommend_content.title
                 })
             elif item.self_content:
                 bingo_obj.append({
+                    "location": item.location,
+                    "is_executed": is_executed,
                     "choice": "0",
                     "id": str(item.self_content.id),
                     "title": item.self_content.title
@@ -103,7 +113,7 @@ class BingoAPIView(APIView):
             
         return Response({
             "username": user.username,
-            "usertype": user.type_result.user_type,
+            #"usertype": user.type_result.user_type,
             "start_date": bingo.start_date,
             "end_date": bingo.end_date,
             "size": bingo.size,
