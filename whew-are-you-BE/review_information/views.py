@@ -35,3 +35,4 @@ class InformationDetailAPIView(APIView):
         information = get_object_or_404(Information, id=id)
         serializer = InformationGETSerializer(information)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
