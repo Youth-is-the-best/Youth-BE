@@ -4,33 +4,41 @@ from .models import CustomUser, Verif
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
 
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'username', 'email', 'university', 'college', 'referral']
+        
+
 # 회원가입 시리얼라이저
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(required=True, validators=[validate_password]) # 적절한 비밀번호인지 체크(너무 쉬운 비밀번호 방지)
     username = serializers.CharField(required=True)
     hash = serializers.CharField(required=True)
     first_name = serializers.CharField(required=True)
-    university = serializers.CharField(required=True)
     college = serializers.CharField(required=False)
     major = serializers.CharField(required=False)
+    referral = serializers.CharField(required=False)
 
     class Meta:
         model = CustomUser
-        fields = ['password', 'username', 'hash', 'first_name', 'university', 'college', 'major']
+        fields = ['password', 'username', 'hash', 'first_name', 'college', 'major', 'referral']
 
     def save(self, request):
         email_hash = self.validated_data['hash']
         verif_object = Verif.objects.filter(hash=email_hash, is_fulfilled=True)
         assert(verif_object.count() == 1)
         email = verif_object.get().email
+        university = verif_object.get().school
 
         user = CustomUser.objects.create(
             username=self.validated_data['username'],
             email=email,
             first_name=self.validated_data['first_name'],
-            university=self.validated_data['university'],
+            university=university,
             college = self.validated_data.get('college', None),
-            major = self.validated_data.get('major', None)
+            major = self.validated_data.get('major', None),
+            referral = self.validated_data.get('referral', None),
         )
 
         # 비밀번호를 암호화
