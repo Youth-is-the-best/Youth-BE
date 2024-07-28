@@ -60,7 +60,7 @@ class RegisterView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     def get(self, request):
-        query = request.data.get('username')
+        query = request.query_params.get('username')
         existing = CustomUser.objects.filter(username=query)
         if not query:
             return Response({"error": "username 필드 필요"}, status=status.HTTP_400_BAD_REQUEST)
