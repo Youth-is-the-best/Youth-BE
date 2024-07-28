@@ -128,6 +128,9 @@ class BingoAPIView(APIView):
         if not bingo:
             return Response({'error': '빙고판 불러오기에 실패하였습니다. 백엔드에게 문의 주세요'}, status=status.HTTP_404_NOT_FOUND)
         
+        if not bingo.change_chance > 0:
+            return Response({'error': '빙고 수정 기회를 모두 소진하였습니다.'}, status=status.HTTP_417_EXPECTATION_FAILED)
+
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         bingo_obj = request.data.get('bingo_obj')
@@ -237,6 +240,10 @@ class BingoObjAPIView(APIView):
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
+        bingo_pan = Bingo.objects.get(id=target.bingo.id)
+        if not bingo_pan.change_chance > 0:
+            return Response({'error': '빙고 수정 기회를 모두 소진하였습니다.'}, status=status.HTTP_417_EXPECTATION_FAILED)
+        
         try: 
             serializer = BingoSpaceSerializer(target, data=request.data.get('bingo_space'))
             if serializer.is_valid():
@@ -261,8 +268,11 @@ class BingoObjAPIView(APIView):
 
         except Exception as e:
             return Response({"error": "형식이 올바르지 못한 요청입니다.", "err_msg": e}, status=status.HTTP_400_BAD_REQUEST)                                                
-                
-        return Response({"success": "정상적으로 수정되었습니다."}, status=status.HTTP_200_OK)
+
+        bingo_pan.change_chance -= 1        # 빙고 수정 기회 줄이기     
+        bingo_pan.save()
+
+        return Response({"success": "정상적으로 수정되었습니다.", "change_chance": bingo_pan.change_chance}, status=status.HTTP_200_OK)
         
     def delete(self, request, obj_id, *args, **kwargs):
         try:
