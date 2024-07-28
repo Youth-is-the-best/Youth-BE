@@ -202,25 +202,30 @@ class BingoObjAPIView(APIView):
             data = {}
             # 1. 빙고 칸 정보 불러오기
             target_serialized = BingoSpaceSerializer(target)
-            data['bingo_space'] = target_serialized
+            data['bingo_space'] = target_serialized.data
 
             # 2. 빙고 항목 정보 불러오기
             if target.recommend_content:
                 assert(target.self_content == False)
-                item = ProvidedBingoItem.objects.get(target.recommend_content)
+                item = ProvidedBingoItem.objects.get(id=target.recommend_content.id)
                 item_serialized = ProvidedBingoItemSerializer(item)
-                data['bingo_item'] = item_serialized
+                data['bingo_item'] = item_serialized.data
 
             if target.self_content:
-                assert(target.recommend_content == False)
-                item = CustomBingoItem.objects.get(target.self_content)
+                print("target.self_content", target.self_content)
+                # assert(target.recommend_content == False)
+                try:
+                    item = CustomBingoItem.objects.get(id=target.self_content.id)
+                except Exception as e:
+                    print("야야야여기에러있다!!!", e)
+                print("item", item)
                 item_serialized = CustomBingoItemSerializer(item)
-                data['bingo_item'] = item_serialized
+                data['bingo_item'] = item_serialized.data
 
             # 3. 빙고 칸의 투두 항목 정보 불러오기
-                todo = ToDo.objects.filter(bingo_space=target)
-                todo_serialized = ToDoSerializer(todo, many=True)
-                data['todo'] = todo_serialized
+            todo = ToDo.objects.filter(bingo_space=target)
+            todo_serialized = ToDoSerializer(todo, many=True)
+            data['todo'] = todo_serialized.data
 
             return Response(data, status=status.HTTP_200_OK)
         except:
