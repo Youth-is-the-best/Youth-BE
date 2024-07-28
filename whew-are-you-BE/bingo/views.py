@@ -13,7 +13,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 # 빙고 저장 & 불러오기
 class BingoAPIView(APIView):
     
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     # 빙고의 첫 생성
     def post(self, request, *args, **kwargs):
@@ -82,9 +82,12 @@ class BingoAPIView(APIView):
     # 빙고 판 정보 불러오기
     def get(self, request, *args, **kwargs):
         user = request.user
-        try: 
-            bingo = Bingo.objects.get(user=user, is_active=True)
-        except Bingo.DoesNotExist:
+        if user.is_authenticated:
+            try:
+                bingo = Bingo.objects.get(user=user, is_active=True)
+            except Bingo.DoesNotExist:
+                bingo = None
+        else:
             bingo = None
 
         if not bingo:
