@@ -36,10 +36,6 @@ class SubmitAnswerAPIView(APIView):
         answer3 = request.data.get('answer3', [])
         answer4 = request.data.get('answer4')
 
-        # 로그인 상태면 DB에 데이터를 생성
-        if user:
-            Answer.objects.create(user=user, return_year=return_year, return_semester=return_semester)
-
         scores = { 'SQUIRREL': 0, 'RABBIT': 0, 'PANDA': 0, 'BEAVER': 0, 'EAGLE': 0, 'BEAR': 0, 'DOLPHIN': 0 }
 
         if not return_year:
