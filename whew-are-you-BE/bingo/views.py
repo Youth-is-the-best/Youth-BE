@@ -82,10 +82,13 @@ class BingoAPIView(APIView):
     # 빙고 판 정보 불러오기
     def get(self, request, *args, **kwargs):
         user = request.user
-        bingo = Bingo.objects.get(user=user, is_active=True)
+        try: 
+            bingo = Bingo.objects.get(user=user, is_active=True)
+        except Bingo.DoesNotExist:
+            bingo = None
 
         if not bingo:
-            return Response({'error': '빙고판 불러오기에 실패하였습니다. 백엔드에게 문의 주세요'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': '빙고판 불러오기에 실패하였습니다.'}, status=status.HTTP_404_NOT_FOUND)
         
         bingo_spaces = BingoSpace.objects.filter(bingo=bingo).order_by('location')
         bingo_obj = []
