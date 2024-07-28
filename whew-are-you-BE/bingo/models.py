@@ -11,7 +11,10 @@ class BaseBingoItem(models.Model):
         ('CERTIFICATE', '자격증'),
         ('OUTBOUND', '대외활동'),
         ('CONTEST', '공모전'),
-        ('SELFCARE', '취미/여행/자기계발/휴식'),
+        ('HOBBY', '취미'),
+        ('TRAVEL', '여행'),
+        ('SELFIMPROVEMENT', '자기계발'),
+        ('REST', '휴식')
     ]
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
