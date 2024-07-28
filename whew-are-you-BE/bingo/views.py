@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .serializers import *
 from users.permissions import IsAuthor
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 # 빙고 저장 & 불러오기
@@ -263,3 +264,16 @@ class BingoObjAPIView(APIView):
             return Response({"error": "서버 오류 발생. 에러 메시지를 백엔드에게 보여주세요.", "err_msg": e}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)   
         return Response({"success": "정상적으로 삭제되었습니다."}, status=status.HTTP_200_OK)     
 
+
+# 빙고 인증용 후기글 뷰
+class BingoReviewAPIView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
+        
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
