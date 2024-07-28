@@ -24,11 +24,11 @@ class BaseBingoItem(models.Model):
     area = models.CharField(max_length=50, null=True) #근무/활동지역
     start_date = models.DateField(null=True) #이건 빙고시작/종료일자가 아니라 진짜 행사 날짜임.
     end_date = models.DateField(null=True)
-    host = models.CharField(max_length=50, null=True) 
+    host = models.CharField(max_length=50, null=True)   # 자격증: 주최, 공모전: 주최
     app_fee = models.IntegerField(null=True)
-    prep_period = models.IntegerField(null=True)
-    app_due = models.DateField(null=True)
-    field = models.CharField(max_length=20, null=True)
+    prep_period = models.CharField(max_length=10, null=True)        # 자격증: 준비 기간, 공모전: 준비 기간
+    app_due = models.DateField(null=True)       # 채용: 지원마감, 자격증: 다음 시험, 대외 활동: 지원마감
+    field = models.CharField(max_length=20, null=True)      # 대외활동: 활동 분야
     image = models.ImageField(null=True)
 
     class Meta:
