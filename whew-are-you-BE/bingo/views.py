@@ -257,3 +257,24 @@ class BingoReviewAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class BingoRecsAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        param_value = request.GET.get('type', None)
+        if param_value == 'squirrel':
+            pass
+        if param_value == 'rabbit':
+            pass
+        if param_value == 'panda':
+            pass
+        if param_value == 'beaver':
+            pass
+        if param_value == 'eagle':
+            pass
+        if param_value == 'bear':
+            pass
+        if param_value == 'dolphin':
+            pass
+
+        return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
