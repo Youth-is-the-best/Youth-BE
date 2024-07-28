@@ -57,6 +57,7 @@ class BingoSpace(models.Model):
     bingo = models.ForeignKey(Bingo, on_delete=models.CASCADE)      # 빙고
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)        # 사용자
     is_executed = models.BooleanField(default=False)        # 실행 완료 여부
+    date = models.DateField(blank=True, null=True)      # 시험 날짜...
     start_date = models.DateField(null=True)     # 항목 시작 날짜
     end_date = models.DateField(null=True)       # 항목 종료 날짜
     image = models.ImageField(null=True, blank=True)        # 나중에 후기글의 대표 이미지
@@ -70,5 +71,5 @@ class ToDo(models.Model):
     title = models.CharField(max_length=50)
     is_completed = models.BooleanField(default=False)
     bingo = models.ForeignKey(Bingo, on_delete=models.CASCADE)
-    bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE)
+    bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE, related_name='todo')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  
