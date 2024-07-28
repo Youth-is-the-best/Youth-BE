@@ -102,6 +102,22 @@ class SubmitAnswerAPIView(APIView):
         user_type = max(scores, key=scores.get)
         user_type_instance = Type.objects.get(user_type=user_type)
 
+        if user_type == 'SQUIRREL':
+            user_type = '준비성 철저한 다람쥐'
+        elif user_type == 'RABBIT':
+            user_type = '열정 가득 부지런한 토끼'
+        elif user_type == 'PANDA':
+            user_type = '재충전을 원하는 판다'
+        elif user_type == 'BEAVER':
+            user_type = '끝없는 발전을 추구하는 비버'
+        elif user_type == 'EAGLE':
+            user_type = '모험을 갈망하는 독수리'
+        elif user_type == 'BEAR':
+            user_type = '안정을 추구하는 곰'
+        elif user_type == 'DOLPHIN':
+            user_type = '호기심 많은 돌고래'
+        
+
         if user:
             # CustomUser의 type_result 필드 업데이트
             user.type_result = user_type_instance
@@ -110,5 +126,6 @@ class SubmitAnswerAPIView(APIView):
         return Response({
             'message': 'All questions answered.',
             'scores': scores,
-            'user_type': user_type
+            'user_type': user_type,
+            'content': user_type_instance.content
         }, status=status.HTTP_200_OK)
