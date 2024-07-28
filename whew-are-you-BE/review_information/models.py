@@ -20,7 +20,7 @@ class Review(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review', blank=True, null=True)
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
-    todo = models.ForeignKey(ToDo, on_delete=models.CASCADE)
+    todo = models.ForeignKey(ToDo, on_delete=models.CASCADE, blank=True, null=True)
     start_date = models.DateField(blank=True, null=True)
     end_date = models.DateField(blank=True, null=True)
     content = models.TextField()
@@ -40,6 +40,12 @@ class Review(models.Model):
 class ReviewImage(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='review_images')
     image = models.ImageField(upload_to='review/')
+
+
+# 세부 항목 모델
+class DetailPlan(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='details')
+    content = models.CharField(max_length=50)
 
 
 # 정보글 모델

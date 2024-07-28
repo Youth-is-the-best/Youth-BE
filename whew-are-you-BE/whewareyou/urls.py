@@ -39,5 +39,5 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('bingo/', include('bingo.urls')),
     path('information/', include('review_information.information_urls')),
-    
+    path('review/', include('review_information.review_urls'))
 ]
