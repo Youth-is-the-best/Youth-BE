@@ -145,6 +145,8 @@ class ReviewStorageAPIView(APIView):
 
 # 댓글 뷰
 class CommentAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
     def post(self, request, review_id, *args, **kwargs):
         review = Review.objects.get(id=review_id)
         serializer = CommentSerializer(data=request.data, context={'request':request})
