@@ -35,3 +35,17 @@ class InformationDetailAPIView(APIView):
         information = get_object_or_404(Information, id=id)
         serializer = InformationGETSerializer(information)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+# 일반 후기글 뷰
+class ReviewAPIView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
+        
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

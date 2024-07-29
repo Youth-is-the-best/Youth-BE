@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Information, InformationImage
+from .models import Information, InformationImage, Review, ReviewImage, DetailPlan
+from rest_framework import status
+from rest_framework.response import Response
 
 
 # 정보글 이미지 시리얼라이저
@@ -57,3 +59,72 @@ class InformationSerializer(serializers.ModelSerializer):
                 InformationImage.objects.create(information=instance, image=image_data)
 
         return instance
+    
+
+# 세부 계획 시리얼라이저
+class DetailPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetailPlan
+        fields = ['content']
+
+
+# 후기글 작성 시리얼라이저
+class ReviewPOSTSerializer(serializers.ModelSerializer):
+    
+    detailplans = DetailPlanSerializer(many=True)
+
+    class Meta:
+        model = Review
+        fields = ['title', 'large_category', 'detailplans', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
+                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure']
+
+    def create(self, validated_data):
+        images = self.context['request'].FILES.getlist('images')
+        user = self.context['user'].user
+        large_category = validated_data['large_category']
+        procedure = validated_data['procedure']
+        content = validated_data['content']
+        title = validated_data['title']
+        duty = validated_data['duty']
+        employment_form = validated_data['employment_form']
+        area = validated_data['area']
+        start_date = validated_data['start_date']
+        end_date = validated_data['end_date']
+        host = validated_data['host']
+        app_fee = validated_data['app_fee']
+        prep_period = validated_data['prep_period']
+        app_due = validated_data['app_due']
+        field = validated_data['field']
+        detailplans = validated_data['detailplans']
+        date = validated_data['date']
+
+        # 인턴(채용) 카테고리인 경우
+        if large_category == 'CAREER':
+            review = Review(user=user, title=title, large_category=large_category, duty=duty, employment_form=employment_form, area=area, start_date=start_date, end_date=end_date, content=content, procedure=procedure)
+        # 자격증 카테고리인 경우
+        elif large_category == 'CERTIFICATE':
+            review = Review(user=user, title=title, large_category=large_category, host=host, app_fee=app_fee, date=date, start_date=start_date, end_date=end_date, procedure=procedure, content=content)
+        # 대외 활동 카테고리인 경우
+        elif large_category == 'OUTBOUND':
+            review = Review(user=user, title=title, large_category=large_category, start_date=start_date, end_date=end_date, field=field, area=area, procedure=procedure, content=content)
+        # 공모전 카테고리인 경우
+        elif large_category == 'CONTEST':
+            review = Review(user=user, title=title, large_category=large_category, host=host, field=field, date=date, start_date=start_date, end_date=end_date, procedure=procedure, content=content)
+        # 그 외(취미, 여행, 자기 계발, 휴식)
+        elif large_category in ['HOBBY', 'TRAVEL', 'SELFIMPROVEMENT', 'REST']:
+            review = Review(title=title, large_category=large_category, start_date=start_date, end_date=end_date, content=content)
+        # 잘못 입력
+        else:
+            return Response({"error": "요청한 카테고리 항목이 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        review.save()
+        
+        for detailplan in detailplans:
+            DetailPlan.objects.create(review=review, **detailplan)
+
+        for image in images:
+            image_data = ReviewImage(review=review, image=image)
+            image_data.save()
+        validated_data['images'] = images
+        
+        return validated_data
