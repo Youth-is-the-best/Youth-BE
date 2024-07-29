@@ -141,3 +141,33 @@ class ReviewStorageAPIView(APIView):
         else:
             review.storage.add(request.user)
             return Response({'message': '보관함 항목에 추가되었습니다.'})
+        
+
+# 댓글 뷰
+class CommentAPIView(APIView):
+    def post(self, request, review_id, *args, **kwargs):
+        review = Review.objects.get(id=review_id)
+        serializer = CommentSerializer(data=request.data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save(review=review, author=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, review_id, format=None):
+        review = Review.objects.get(id=review_id)
+        comments = Comment.objects.filter(review=review)
+
+        response_data = []
+
+        for comment in comments:
+            json = {
+                'id': comment.id,
+                'content': comment.content,
+                'author': comment.author.id,
+                'review': comment.review.id,
+                'user_type': comment.author.type_result.user_type
+            }
+
+            response_data.append(json)
+        return Response(response_data)
+        

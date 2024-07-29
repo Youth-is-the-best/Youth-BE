@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Information, InformationImage, Review, ReviewImage, DetailPlan
+from .models import Information, InformationImage, Review, ReviewImage, DetailPlan, Comment
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -179,3 +179,12 @@ class ReviewGETSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes']
+        
+
+# 댓글 시리얼라이저
+class CommentSerializer(serializers.ModelSerializer):
+    # 유형 사진 나중에 추가
+
+    class Meta:
+        model = Comment
+        fields = ['content']
