@@ -86,11 +86,11 @@ class Review(models.Model):
     ]
 
     # 모든 후기글 양식 공통
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review', blank=True, null=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review')
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
     content = models.TextField()
 
     # 빙고 인증용 후기글 공통
@@ -107,6 +107,10 @@ class Review(models.Model):
     app_due = models.DateField(null=True)       # 공모전: 마감일
     field = models.CharField(max_length=20, null=True)      # 대외 활동, 공모전: 활동/공모 분야
     procedure = models.TextField(blank=True, null=True)     # 채용, 자격증, 대외활동: 모집 절차, 시험 절차
+
+    # 좋아요, 보관함
+    likes = models.ManyToManyField(CustomUser, related_name='like_posts', blank=True)
+    storage = models.ManyToManyField(CustomUser, related_name='storage_posts', blank=True)
 
 
 # 후기글 이미지
