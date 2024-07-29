@@ -196,7 +196,7 @@ class BingoObjAPIView(APIView):
 
             return Response(data, status=status.HTTP_200_OK)
         except:
-            return Response({"error": "서버 오류가 발생했습니다. 백엔드를 위로해주세요."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "서버 오류가 발생했습니다.e"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, obj_id, *args, **kwargs):
         try:
@@ -291,7 +291,7 @@ class BingoRecsAPIView(APIView):
         
         else:
             #일단 대강 일케 추천
-            recs = ProvidedBingoItem.objects.filter(type == param_value.upper)
+            recs = ProvidedBingoItem.objects.filter(type__user_type = param_value.upper())
             serializer = ProvidedBingoItemSerializer(recs, many=True)
             serializer_data = serializer.data
 
