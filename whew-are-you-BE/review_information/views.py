@@ -64,4 +64,7 @@ class ReviewAPIView(APIView):
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+    def get(self, request, *args, **kwargs):
+        information = Review.objects.all()
+        serializer = ReviewGETSerializer(information, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

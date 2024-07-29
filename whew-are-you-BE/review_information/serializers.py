@@ -68,7 +68,16 @@ class DetailPlanSerializer(serializers.ModelSerializer):
         fields = ['content']
 
 
-# 후기글 작성 시리얼라이저
+# 후기글 이미지 시리얼라이저
+class ReviewImageSerializer(serializers.ModelSerializer):
+    image_id = serializers.IntegerField(source='id')
+
+    class Meta:
+        model = InformationImage
+        fields = ['image_id', 'image']
+
+
+# 후기글 POST 시리얼라이저
 class ReviewPOSTSerializer(serializers.ModelSerializer):
     
     detailplans = DetailPlanSerializer(many=True)
@@ -128,3 +137,14 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
             DetailPlan.objects.create(review=review, **detailplan)
         
         return review
+    
+
+# 후기글 GET 시리얼라이저
+class ReviewGETSerializer(serializers.ModelSerializer):
+    images = ReviewImageSerializer(many=True, read_only=True)
+    detailplans = DetailPlanSerializer(many=True)
+
+    class Meta:
+        model = Review
+        fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
+                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans']
