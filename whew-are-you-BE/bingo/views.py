@@ -264,19 +264,15 @@ class BingoReviewAPIView(APIView):
 class BingoRecsAPIView(APIView):
     def get(self, request, *args, **kwargs):
         param_value = request.GET.get('type', None)
-        if param_value == 'squirrel':
-            pass
-        if param_value == 'rabbit':
-            pass
-        if param_value == 'panda':
-            pass
-        if param_value == 'beaver':
-            pass
-        if param_value == 'eagle':
-            pass
-        if param_value == 'bear':
-            pass
-        if param_value == 'dolphin':
-            pass
 
-        return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        if param_value not in ['squirrel', 'rabbit', 'panda', 'beaver', 'eagle', 'bear', 'dolphin']:
+            return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            #일단 대강 일케 추천
+            recs = ProvidedBingoItem.objects.filter(type == param_value.upper)
+            serializer = ProvidedBingoItemSerializer(recs, many=True)
+            serializer_data = serializer.data
+
+        return Response({"success": "유형별 추천 항목", "data": serializer_data}, status=status.HTTP_200_OK)
+
