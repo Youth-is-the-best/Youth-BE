@@ -280,4 +280,3 @@ class BingoRecsAPIView(APIView):
             pass
 
         return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
