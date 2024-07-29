@@ -65,8 +65,13 @@ class ReviewAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, *args, **kwargs):
-        information = Review.objects.all()
-        serializer = ReviewGETSerializer(information, many=True)
+        large_category = request.query_params.get('large_category', None)
+
+        if not large_category:
+            review = Review.objects.all()
+        else:
+            review = Review.objects.filter(large_category=large_category)
+        serializer = ReviewGETSerializer(review, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
