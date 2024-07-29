@@ -156,6 +156,18 @@ class CommentAPIView(APIView):
     def get(self, request, review_id, format=None):
         review = Review.objects.get(id=review_id)
         comments = Comment.objects.filter(review=review)
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
+
+        response_data = []
+
+        for comment in comments:
+            json = {
+                'id': comment.id,
+                'content': comment.content,
+                'author': comment.author.id,
+                'review': comment.review.id,
+                'user_type': comment.author.type_result.user_type
+            }
+
+            response_data.append(json)
+        return Response(response_data)
         
