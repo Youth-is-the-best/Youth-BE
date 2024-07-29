@@ -154,3 +154,10 @@ class Information(models.Model):
 class InformationImage(models.Model):
     information = models.ForeignKey(Information, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='information/')
+
+
+# 댓글
+class Comment(models.Model):
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)        # 사용자
+    review = models.ForeignKey(Review, on_delete=models.CASCADE)        # 후기글
+    content = models.TextField()        # 댓글 내용
