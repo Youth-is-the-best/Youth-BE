@@ -13,7 +13,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 # 빙고 저장 & 불러오기
 class BingoAPIView(APIView):
     
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     # 빙고의 첫 생성
     def post(self, request, *args, **kwargs):
@@ -82,10 +82,17 @@ class BingoAPIView(APIView):
     # 빙고 판 정보 불러오기
     def get(self, request, *args, **kwargs):
         user = request.user
-        bingo = Bingo.objects.get(user=user, is_active=True)
+
+        if user.is_authenticated:
+            try:
+                bingo = Bingo.objects.get(user=user, is_active=True)
+            except Bingo.DoesNotExist:
+                bingo = None
+        else:
+            bingo = None
 
         if not bingo:
-            return Response({'error': '빙고판 불러오기에 실패하였습니다. 백엔드에게 문의 주세요'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': '빙고판 불러오기에 실패하였습니다.'}, status=status.HTTP_404_NOT_FOUND)
         
         bingo_spaces = BingoSpace.objects.filter(bingo=bingo).order_by('location')
         bingo_obj = []
@@ -120,10 +127,27 @@ class BingoAPIView(APIView):
                 })
             else:
                 bingo_obj.append(None)
-            
+        
+        user_type = user.type_result.user_type
+
+        if user_type == 'SQUIRREL':
+            user_type = '준비성 철저한 다람쥐'
+        elif user_type == 'RABBIT':
+            user_type = '열정 가득 부지런한 토끼'
+        elif user_type == 'PANDA':
+            user_type = '재충전을 원하는 판다'
+        elif user_type == 'BEAVER':
+            user_type = '끝없는 발전을 추구하는 비버'
+        elif user_type == 'EAGLE':
+            user_type = '모험을 갈망하는 독수리'
+        elif user_type == 'BEAR':
+            user_type = '안정을 추구하는 곰'
+        elif user_type == 'DOLPHIN':
+            user_type = '호기심 많은 돌고래'
+
         return Response({
             "username": user.username,
-            #"usertype": user.type_result.user_type,
+            "usertype": user_type,
             "start_date": bingo.start_date,
             "end_date": bingo.end_date,
             "size": bingo.size,
@@ -261,20 +285,15 @@ class BingoReviewAPIView(APIView):
 class BingoRecsAPIView(APIView):
     def get(self, request, *args, **kwargs):
         param_value = request.GET.get('type', None)
-        if param_value == 'squirrel':
-            pass
-        if param_value == 'rabbit':
-            pass
-        if param_value == 'panda':
-            pass
-        if param_value == 'beaver':
-            pass
-        if param_value == 'eagle':
-            pass
-        if param_value == 'bear':
-            pass
-        if param_value == 'dolphin':
-            pass
 
-        return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        if param_value not in ['squirrel', 'rabbit', 'panda', 'beaver', 'eagle', 'bear', 'dolphin']:
+            return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            #일단 대강 일케 추천
+            recs = ProvidedBingoItem.objects.filter(type == param_value.upper)
+            serializer = ProvidedBingoItemSerializer(recs, many=True)
+            serializer_data = serializer.data
+
+        return Response({"success": "유형별 추천 항목", "data": serializer_data}, status=status.HTTP_200_OK)
 
