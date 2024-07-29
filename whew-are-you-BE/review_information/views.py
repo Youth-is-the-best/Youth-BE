@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from .permissions import IsAdminOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Information, InformationImage, Review, ReviewImage
 from .serializers import *
 from rest_framework.response import Response
@@ -41,6 +42,7 @@ class InformationDetailAPIView(APIView):
 # 일반 후기글 뷰
 class ReviewAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def post(self, request, *args, **kwargs):
         json_data = request.data.get('json')
@@ -57,7 +59,7 @@ class ReviewAPIView(APIView):
                 images = request.FILES.getlist('images')
                 for image in images:
                     ReviewImage.objects.create(review=review, image=image)
-                    
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
