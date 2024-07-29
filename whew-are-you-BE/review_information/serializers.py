@@ -178,4 +178,4 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
-                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans']
+                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes']

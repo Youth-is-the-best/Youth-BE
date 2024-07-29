@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from .permissions import IsAdminOrReadOnly
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .models import Information, InformationImage, Review, ReviewImage
 from .serializers import *
 from rest_framework.response import Response
@@ -77,6 +77,8 @@ class ReviewAPIView(APIView):
 
 # 후기글 디테일 뷰
 class ReviewDetailAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request, id, *args, **kwargs):
         review = get_object_or_404(Review, id=id)
         serializer = ReviewGETSerializer(review)
@@ -111,3 +113,31 @@ class ReviewDetailAPIView(APIView):
         return Response({
             "message": "후기글이 성공적으로 삭제되었습니다."
         },status=status.HTTP_204_NO_CONTENT)
+    
+
+# 좋아요
+class ReviewLikeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id, *args, **kwargs):
+        review = get_object_or_404(Review, id=id)
+        if request.user in review.likes.all():
+            review.likes.remove(request.user)
+            return Response({'message': '좋아요가 취소되었습니다.'})
+        else:
+            review.likes.add(request.user)
+            return Response({'message': '좋아요가 반영되었습니다.'})
+        
+
+# 보관함
+class ReviewStorageAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id, *args, **kwargs):
+        review = get_object_or_404(Review, id=id)
+        if request.user in review.storage.all():
+            review.storage.remove(request.user)
+            return Response({'message': '보관함 항목에서 제거되었습니다.'})
+        else:
+            review.storage.add(request.user)
+            return Response({'message': '보관함 항목에 추가되었습니다.'})
