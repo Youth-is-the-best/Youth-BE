@@ -121,7 +121,7 @@ class ReviewImage(models.Model):
 
 # 세부 항목 모델
 class DetailPlan(models.Model):
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='details')
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='detailplans')
     content = models.CharField(max_length=50)
 
 

@@ -4,7 +4,7 @@ from .models import Information, InformationImage
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 
 # 모든 정보글 뷰
@@ -39,7 +39,7 @@ class InformationDetailAPIView(APIView):
 
 # 일반 후기글 뷰
 class ReviewAPIView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request, *args, **kwargs):
         serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
