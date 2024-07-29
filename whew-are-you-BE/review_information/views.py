@@ -104,3 +104,10 @@ class ReviewDetailAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self,request,id):
+        review = get_object_or_404(Review, id=id)
+        review.delete()
+        return Response({
+            "message": "후기글이 성공적으로 삭제되었습니다."
+        },status=status.HTTP_204_NO_CONTENT)
