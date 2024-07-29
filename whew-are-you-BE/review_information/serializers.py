@@ -77,8 +77,8 @@ class ReviewImageSerializer(serializers.ModelSerializer):
         fields = ['image_id', 'image']
 
 
-# 후기글 POST 시리얼라이저
-class ReviewPOSTSerializer(serializers.ModelSerializer):
+# 후기글 POST, GET 시리얼라이저
+class ReviewSerializer(serializers.ModelSerializer):
     
     detailplans = DetailPlanSerializer(many=True)
     id = serializers.ReadOnlyField()
@@ -138,6 +138,37 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
         
         return review
     
+    def update(self, instance, validated_data):
+        # 필수 항목들 업데이트
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
+        instance.large_category = validated_data.get('large_category', instance.large_category)
+
+        # 선택 항목 업데이트
+        instance.procedure = validated_data.get('procedure', instance.procedure)
+        instance.duty = validated_data.get('duty', instance.duty)
+        instance.employment_form = validated_data.get('employment_form', instance.employment_form)
+        instance.area = validated_data.get('area', instance.area)
+        instance.host = validated_data.get('host', instance.host)
+        instance.app_fee = validated_data.get('app_fee', instance.app_fee)
+        instance.app_due = validated_data.get('app_due', instance.app_due)
+        instance.field = validated_data.get('field', instance.field)
+        instance.date = validated_data.get('date', instance.date)
+
+        # 리뷰 저장
+        instance.save()
+
+        # DetailPlans 업데이트
+        detailplans_data = validated_data.get('detailplans')
+        if detailplans_data:
+            # 기존 DetailPlan 객체들을 삭제하지 않고, 새로 생성된 객체들로 교체합니다.
+            instance.detailplans.all().delete()
+            for detailplan_data in detailplans_data:
+                DetailPlan.objects.create(review=instance, **detailplan_data)
+
+        return instance
 
 # 후기글 GET 시리얼라이저
 class ReviewGETSerializer(serializers.ModelSerializer):

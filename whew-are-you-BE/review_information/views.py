@@ -51,7 +51,7 @@ class ReviewAPIView(APIView):
         else:
             data = {}
 
-        serializer = ReviewPOSTSerializer(data=data, context={'request':request})
+        serializer = ReviewSerializer(data=data, context={'request':request})
         
         if serializer.is_valid():
             review = serializer.save()
@@ -68,3 +68,34 @@ class ReviewAPIView(APIView):
         information = Review.objects.all()
         serializer = ReviewGETSerializer(information, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# 후기글 디테일 뷰
+class ReviewDetailAPIView(APIView):
+    def get(self, request, id, *args, **kwargs):
+        review = get_object_or_404(Review, id=id)
+        serializer = ReviewGETSerializer(review)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, id, *args, **kwargs):
+        review = get_object_or_404(Review, id=id)
+
+        json_data = request.data.get('json')
+        if json_data:
+            data = json.loads(json_data)
+        else:
+            data = {}
+
+        serializer = ReviewSerializer(review, data=data, context={'request':request})
+
+        if serializer.is_valid():
+            review = serializer.save()
+            if 'images' in request.FILES:
+                review.images.all().delete()
+                images = request.FILES.getlist('images')
+                for image in images:
+                    ReviewImage.objects.create(review=review, image=image)
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

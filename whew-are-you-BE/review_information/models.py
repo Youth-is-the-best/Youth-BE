@@ -109,8 +109,8 @@ class Review(models.Model):
     procedure = models.TextField(blank=True, null=True)     # 채용, 자격증, 대외활동: 모집 절차, 시험 절차
 
     # 좋아요, 보관함
-    likes = models.ManyToManyField(CustomUser, related_name='like_posts', blank=True)
-    storage = models.ManyToManyField(CustomUser, related_name='storage_posts', blank=True)
+    likes = models.ManyToManyField(CustomUser, related_name='like_review', blank=True)
+    storage = models.ManyToManyField(CustomUser, related_name='storage_review', blank=True)
 
 
 # 후기글 이미지
@@ -144,6 +144,10 @@ class Information(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     content = models.TextField()
+
+    # 좋아요, 보관함
+    likes = models.ManyToManyField(CustomUser, related_name='like_informaion', blank=True)
+    storage = models.ManyToManyField(CustomUser, related_name='storage_information', blank=True)
 
 
 # 정보글 이미지
