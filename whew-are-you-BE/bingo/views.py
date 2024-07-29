@@ -126,7 +126,7 @@ class BingoAPIView(APIView):
             
         return Response({
             "username": user.username,
-            #"usertype": user.type_result.user_type,
+            "usertype": user.type_result.user_type,
             "start_date": bingo.start_date,
             "end_date": bingo.end_date,
             "size": bingo.size,
