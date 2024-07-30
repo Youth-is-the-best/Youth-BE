@@ -3,6 +3,7 @@ from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo
 from review_information.models import ReviewImage, Review
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 class BingoSpaceSerializer(serializers.ModelSerializer):
     class Meta: 
@@ -80,14 +81,20 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
 
         # 인턴(채용) 카테고리인 경우
         if large_category == 'CAREER':
+            if not procedure:
+                raise ValidationError("모집 절차 항목을 입력 해주세요.")
             review = Review(user=user, large_category=large_category, content=content, title=title, start_date=start_date_user, end_date=end_date_user,
                             duty=duty, employment_form=employment_form, area=area, procedure=procedure, bingo_space=bingo_space)
         # 자격증 카테고리인 경우
         elif large_category == 'CERTIFICATE':
+            if not procedure:
+                raise ValidationError("시험 절차 항목을 입력 해주세요.")
             review = Review(user=user, title=title, large_category=large_category, host=host, app_fee=app_fee, date=date, bingo_space=bingo_space,
                             start_date=start_date_user, end_date=end_date_user, procedure=procedure, content=content)
         # 대외 활동 카테고리인 경우
         elif large_category == 'OUTBOUND':
+            if not procedure:
+                raise ValidationError("모집 절차 항목을 입력 해주세요.")
             review = Review(user=user, title=title, large_category=large_category, field=field, area=area, start_date=start_date_user, end_date=end_date_user,
                             procedure=procedure, content=content, bingo_space=bingo_space)
         # 공모전 카테고리인 경우
