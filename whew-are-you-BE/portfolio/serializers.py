@@ -4,6 +4,8 @@ from .models import Portfolio, ThisIsMe, BingoComplete, OtherComplete
 
 # 저는 이런 사람 입니다 시리얼라이저
 class ThisIsMeSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = ThisIsMe
         fields = ['id', 'content']
@@ -11,6 +13,8 @@ class ThisIsMeSerializer(serializers.ModelSerializer):
 
 # 달성한 빙고 시리얼라이저
 class BingoCompleteSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = BingoComplete
         fields = ['id', 'content']
@@ -18,6 +22,8 @@ class BingoCompleteSerializer(serializers.ModelSerializer):
 
 # 다른 성과 시리얼라이저
 class OtherCompleteSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+    
     class Meta:
         model = OtherComplete
         fields = ['id', 'content']
