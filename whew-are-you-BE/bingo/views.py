@@ -112,7 +112,8 @@ class BingoAPIView(APIView):
                     "location": item.location,
                     "is_executed": is_executed,
                     "choice": "1",
-                    "id": str(item.recommend_content.id),
+                    "item_id": item.id,
+                    "content_id": str(item.recommend_content.id),
                     "title": item.recommend_content.title,
                     "todo": todos
                 })
@@ -121,7 +122,8 @@ class BingoAPIView(APIView):
                     "location": item.location,
                     "is_executed": is_executed,
                     "choice": "0",
-                    "id": str(item.self_content.id),
+                    "item_id": item.id,
+                    "content_id": str(item.self_content.id),
                     "title": item.self_content.title,
                     "todo": todos
                 })
