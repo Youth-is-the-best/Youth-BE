@@ -42,7 +42,7 @@ class BingoAPIView(APIView):
             if item:
                 location = item.get('location')     # 빙고 칸의 위치
                 choice = item.get('choice')     # 직접 입력 항목이면 "0", 끌어온 항목이면 "1"
-                item_id = item.get('id')
+                item_id = item.get('id')        # 추천 항목의 경우만 처음부터 item_id를 갖는다.
                 if item_id:
                     item_id = int(item_id)      # item_id를 정수 처리
                 title = item.get('title')
@@ -66,7 +66,7 @@ class BingoAPIView(APIView):
                 
                 #투두 등록하기
                 for todo in todos:
-                    ToDo.objects.create(title=todo.title, bingo=bingo, bingo_space=bingo_space, user=user)
+                    ToDo.objects.create(title=todo['title'], bingo=bingo, bingo_space=bingo_space, user=user)
                 
             # null인 경우
             if not item:
@@ -115,7 +115,7 @@ class BingoAPIView(APIView):
                     "item_id": item.id,
                     "content_id": str(item.recommend_content.id),
                     "title": item.recommend_content.title,
-                    "todo": todos
+                    "todo": ToDoSerializer(todos, many=True).data
                 })
             elif item.self_content:
                 bingo_obj.append({
@@ -125,7 +125,7 @@ class BingoAPIView(APIView):
                     "item_id": item.id,
                     "content_id": str(item.self_content.id),
                     "title": item.self_content.title,
-                    "todo": todos
+                    "todo": ToDoSerializer(todos, many=True).data
                 })
             else:
                 bingo_obj.append(None)
