@@ -217,7 +217,7 @@ class BingoObjAPIView(APIView):
         
         bingo_pan = Bingo.objects.get(id=target.bingo.id)
         if not bingo_pan.change_chance > 0:
-            return Response({'error': '빙고 수정 기회를 모두 소진하였습니다.'}, status=status.HTTP_417_EXPECTATION_FAILED)
+            return Response({'error': '빙고 수정 기회를 모두 소진하였습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try: 
             serializer = BingoSpaceSerializer(target, data=request.data.get('bingo_space'))
@@ -236,10 +236,24 @@ class BingoObjAPIView(APIView):
                 return Response({'error': "BingoSpace 객체에 문제가 있습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             todos_data = request.data.get('todo', [])
+            existing_todo_ids = set(ToDo.objects.filter(bingo_space=target).values_list('id', flat=True))
+            request_todo_ids = set()
             for todo_data in todos_data:
-                todo_serializer = ToDoSerializer(data=todo_data)
+                todo_id = todo_data.get('id')
+                if todo_id:
+                    request_todo_ids.add(todo_id)
+                    try:
+                        todo = ToDo.objects.get(id=todo_id)
+                        todo_serializer = ToDoSerializer(todo, data=todo_data)
+                    except ToDo.DoesNotExist:
+                        todo_serializer = ToDoSerializer(data=todo_data)
+                else:
+                    todo_serializer = ToDoSerializer(data=todo_data)
+
                 if todo_serializer.is_valid():
                     todo_serializer.save(bingo_space=target)
+            to_delete_ids = existing_todo_ids - request_todo_ids
+            ToDo.objects.filter(id__in=to_delete_ids).delete()
 
         except Exception as e:
             return Response({"error": "형식이 올바르지 못한 요청입니다.", "err_msg": str(e)}, status=status.HTTP_400_BAD_REQUEST)                                                
