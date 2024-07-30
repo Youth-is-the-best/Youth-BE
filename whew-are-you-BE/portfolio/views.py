@@ -144,3 +144,40 @@ class BingoCompleteDetailAPIView(APIView):
         return Response({
             "message": "항목이 성공적으로 삭제되었습니다."
         },status=status.HTTP_204_NO_CONTENT)
+    
+
+# 다른 성과 작성 뷰
+class OtherCompleteAPIView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        serializer = OtherCompleteSerializer(data=request.data)
+        user = request.user
+
+        try:
+            portfolio = Portfolio.objects.get(user=user)
+        except Portfolio.DoesNotExist:
+            return Response({"error": "포트폴리오가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if serializer.is_valid():
+            serializer.save(portfolio=portfolio)
+            return Response({
+                "data": serializer.data,
+                "message": "다른 성과 추가 완료"
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# 다른 성과 삭제 뷰
+class OtherCompleteDetailAPIView(APIView):
+
+    def delete(self, request, id):
+        
+        try:
+            target = OtherComplete.objects.get(id=id)
+        except OtherComplete.DoesNotExist:
+            return Response({"error": "항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        target.delete()
+        return Response({
+            "message": "항목이 성공적으로 삭제되었습니다."
+        },status=status.HTTP_204_NO_CONTENT)
