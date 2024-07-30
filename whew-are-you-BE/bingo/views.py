@@ -112,7 +112,8 @@ class BingoAPIView(APIView):
                     "location": item.location,
                     "is_executed": is_executed,
                     "choice": "1",
-                    "id": str(item.recommend_content.id),
+                    "item_id": item.id,
+                    "content_id": str(item.recommend_content.id),
                     "title": item.recommend_content.title,
                     "todo": todos
                 })
@@ -121,7 +122,8 @@ class BingoAPIView(APIView):
                     "location": item.location,
                     "is_executed": is_executed,
                     "choice": "0",
-                    "id": str(item.self_content.id),
+                    "item_id": item.id,
+                    "content_id": str(item.self_content.id),
                     "title": item.self_content.title,
                     "todo": todos
                 })
@@ -196,7 +198,7 @@ class BingoObjAPIView(APIView):
 
             return Response(data, status=status.HTTP_200_OK)
         except:
-            return Response({"error": "서버 오류가 발생했습니다. 백엔드를 위로해주세요."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "서버 오류가 발생했습니다.e"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, obj_id, *args, **kwargs):
         try:
@@ -213,27 +215,28 @@ class BingoObjAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()
 
-            #사실상 비어있는 BingoSpace에 채워야할 경우도 있기 때문에 target으로부터 바로 종류를 가져올 수 없을 수 있다.
             choice = request.data.get('choice')
-            if choice == "0": #직접입력의 경우
+            if choice == "0": # 직접입력의 경우
                 serializer = CustomBingoItemSerializer(target.self_content, data=request.data.get('bingo_item'))
                 if serializer.is_valid():
                     serializer.save()
-            elif choice == "1": #끌어오기항목의 경우
+            elif choice == "1": # 끌어오기항목의 경우
                 serializer = ProvidedBingoItemSerializer(target.recommend_content, data=request.data.get('bingo_item'))
                 if serializer.is_valid():
                     serializer.save()
             else:
-                raise ValueError('choice 값은 \'0\' 또는 \'1\'만 가능합니다.')
+                return Response({'error': "choice 값은 '0' 또는 '1'만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
             
-            serializer = ToDoSerializer(target, data=request.data.get['todo'], many=True)
-            if serializer.is_valid():
-                serializer.save()
+            todos_data = request.data.get('todo', [])
+            for todo_data in todos_data:
+                todo_serializer = ToDoSerializer(data=todo_data)
+                if todo_serializer.is_valid():
+                    todo_serializer.save(bingo_space=target)
 
         except Exception as e:
-            return Response({"error": "형식이 올바르지 못한 요청입니다.", "err_msg": e}, status=status.HTTP_400_BAD_REQUEST)                                                
+            return Response({"error": "형식이 올바르지 못한 요청입니다.", "err_msg": str(e)}, status=status.HTTP_400_BAD_REQUEST)                                                
 
-        bingo_pan.change_chance -= 1        # 빙고 수정 기회 줄이기     
+        bingo_pan.change_chance -= 1
         bingo_pan.save()
 
         return Response({"success": "정상적으로 수정되었습니다.", "change_chance": bingo_pan.change_chance}, status=status.HTTP_200_OK)
@@ -291,7 +294,7 @@ class BingoRecsAPIView(APIView):
         
         else:
             #일단 대강 일케 추천
-            recs = ProvidedBingoItem.objects.filter(type == param_value.upper)
+            recs = ProvidedBingoItem.objects.filter(type__user_type = param_value.upper())
             serializer = ProvidedBingoItemSerializer(recs, many=True)
             serializer_data = serializer.data
 

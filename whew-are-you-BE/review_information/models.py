@@ -95,7 +95,6 @@ class Review(models.Model):
 
     # 빙고 인증용 후기글 공통
     bingo_space = models.OneToOneField(BingoSpace, null=True, blank=True, related_name='review', on_delete=models.CASCADE)      # 빙고 인증용 후기글
-    todo = models.ForeignKey(ToDo, on_delete=models.CASCADE, blank=True, null=True)     # 빙고 인증용 후기글
 
     # 분류에 따라 달라지는 양식
     duty = models.CharField(max_length=50, null=True)       # 채용: 직무
