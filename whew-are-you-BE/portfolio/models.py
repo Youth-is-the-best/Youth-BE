@@ -9,6 +9,7 @@ class Portfolio(models.Model):
     school_major = models.CharField(max_length=30, blank=True, null=True)
     phone_number = models.CharField(max_length=16, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+    modifier = models.CharField(max_length=100, blank=True, null=True)
 
 
 # 저는 이런 사람입니다(?) 모델
