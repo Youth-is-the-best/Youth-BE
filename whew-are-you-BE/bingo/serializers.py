@@ -3,6 +3,7 @@ from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo
 from review_information.models import ReviewImage, Review
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 class BingoSpaceSerializer(serializers.ModelSerializer):
     class Meta: 
@@ -27,23 +28,23 @@ class ToDoSerializer(serializers.ModelSerializer):
 
 # 후기글 작성 시리얼라이저
 class ReviewPOSTSerializer(serializers.ModelSerializer):
-    location = serializers.CharField()
+    space_location = serializers.CharField(write_only=True)
 
     class Meta:
         model = Review
-        fields = ["location", "procedure", "content", "large_category"]
+        fields = ["space_location", "procedure", "content", "large_category"]
 
     def create(self, validated_data):
         # 사용자가 입력
         large_category = validated_data['large_category']       # 분류
-        location = int(validated_data['location'])      # 빙고 칸의 위치(0~8)
+        location = int(validated_data.pop('space_location'))      # 빙고 칸의 위치(0~8)
         content = validated_data['content']
         procedure = validated_data.get('procedure')     # 채용, 자격증, 대외 활동: 모집/시험 절차
         images = self.context['request'].FILES.getlist('images')        # 사용자가 올린 이미지
 
         # 자동 입력
-        user = self.context['user'].user
-        bingo = Bingo.objects.get(user=user, is_activate=True)
+        user = self.context['request'].user
+        bingo = Bingo.objects.get(user=user, is_active=True)
         bingo_space = BingoSpace.objects.get(bingo=bingo, location=location)
         todo = bingo_space.todo.all()
         date = bingo_space.date     # 자격증: 시험 날짜
@@ -80,14 +81,20 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
 
         # 인턴(채용) 카테고리인 경우
         if large_category == 'CAREER':
+            if not procedure:
+                raise ValidationError("모집 절차 항목을 입력 해주세요.")
             review = Review(user=user, large_category=large_category, content=content, title=title, start_date=start_date_user, end_date=end_date_user,
                             duty=duty, employment_form=employment_form, area=area, procedure=procedure, bingo_space=bingo_space)
         # 자격증 카테고리인 경우
         elif large_category == 'CERTIFICATE':
+            if not procedure:
+                raise ValidationError("시험 절차 항목을 입력 해주세요.")
             review = Review(user=user, title=title, large_category=large_category, host=host, app_fee=app_fee, date=date, bingo_space=bingo_space,
                             start_date=start_date_user, end_date=end_date_user, procedure=procedure, content=content)
         # 대외 활동 카테고리인 경우
         elif large_category == 'OUTBOUND':
+            if not procedure:
+                raise ValidationError("모집 절차 항목을 입력 해주세요.")
             review = Review(user=user, title=title, large_category=large_category, field=field, area=area, start_date=start_date_user, end_date=end_date_user,
                             procedure=procedure, content=content, bingo_space=bingo_space)
         # 공모전 카테고리인 경우
