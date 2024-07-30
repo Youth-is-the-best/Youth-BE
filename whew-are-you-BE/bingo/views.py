@@ -222,19 +222,18 @@ class BingoObjAPIView(APIView):
         try: 
             serializer = BingoSpaceSerializer(target, data=request.data.get('bingo_space'))
             if serializer.is_valid():
+                #TODO: 원래는 is_executed 등 함부로 못 바꾸게 sanitize 해야.
                 serializer.save()
 
-            choice = request.data.get('choice')
-            if choice == "0": # 직접입력의 경우
+            # choice 변수 대신 자동으로 수정 가능 여부 판단
+            if target.self_content is not None and target.recommend_content is None: # 직접입력의 경우
                 serializer = CustomBingoItemSerializer(target.self_content, data=request.data.get('bingo_item'))
-                if serializer.is_valid():
-                    serializer.save()
-            elif choice == "1": # 끌어오기항목의 경우
-                serializer = ProvidedBingoItemSerializer(target.recommend_content, data=request.data.get('bingo_item'))
-                if serializer.is_valid():
-                    serializer.save()
+                if serializer.is_valid(): 
+                    serializer.save() # 들어온 그대로 바꿔준다.
+            elif target.recommend_content is not None and target.self_content is None: # 끌어오기항목의 경우
+                pass # 수정 불가하므로 아무 수정도 하지 않는다.
             else:
-                return Response({'error': "choice 값은 '0' 또는 '1'만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': "BingoSpace 객체에 문제가 있습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             todos_data = request.data.get('todo', [])
             for todo_data in todos_data:
