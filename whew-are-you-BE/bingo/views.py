@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .serializers import *
 from users.permissions import IsAuthor
+from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
 
 
@@ -159,11 +160,13 @@ class BingoAPIView(APIView):
     
 
 class BingoObjAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAuthor]
+    permission_classes = [IsAuthenticated, IsAuthor, IsValidLoc]
     
-    def get(self, request, obj_id, *args, **kwargs):
+    def get(self, request, location, *args, **kwargs):
         try:
-            target = BingoSpace.objects.get(id=obj_id)
+            location = int(location)
+            bingo = Bingo.objects.get(user=request.user, is_active=True)
+            target = BingoSpace.objects.get(bingo=bingo, location=location)
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -175,19 +178,22 @@ class BingoObjAPIView(APIView):
 
             # 2. 빙고 항목 정보 불러오기
             if target.recommend_content:
-                assert(target.self_content == False)
-                item = ProvidedBingoItem.objects.get(id=target.recommend_content.id)
+                assert(target.self_content is None)
+                try:
+                    item = ProvidedBingoItem.objects.get(id=target.recommend_content.id)
+                except Exception as e:
+                    print("ProvidedBingoItem 가져오는 중 오류", e, type(e))
+                    raise e
                 item_serialized = ProvidedBingoItemSerializer(item)
                 data['bingo_item'] = item_serialized.data
 
             if target.self_content:
-                print("target.self_content", target.self_content)
-                # assert(target.recommend_content == False)
+                assert(target.recommend_content is None)
                 try:
                     item = CustomBingoItem.objects.get(id=target.self_content.id)
                 except Exception as e:
-                    print("야야야여기에러있다!!!", e)
-                print("item", item)
+                    print("CustomBingoItem 가져오는 중 오류", e, type(e))
+                    raise e
                 item_serialized = CustomBingoItemSerializer(item)
                 data['bingo_item'] = item_serialized.data
 
@@ -197,12 +203,15 @@ class BingoObjAPIView(APIView):
             data['todo'] = todo_serialized.data
 
             return Response(data, status=status.HTTP_200_OK)
-        except:
-            return Response({"error": "서버 오류가 발생했습니다.e"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print(f"Exception: {e}, Type: {type(e)}")
+            return Response({"error": "서버 오류가 발생했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request, obj_id, *args, **kwargs):
+    def put(self, request, location, *args, **kwargs):
         try:
-            target = BingoSpace.objects.get(id=obj_id)
+            location = int(location)
+            bingo = Bingo.objects.get(user=request.user, is_active=True)
+            target = BingoSpace.objects.get(bingo=bingo, location=location)
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -240,14 +249,16 @@ class BingoObjAPIView(APIView):
 
         return Response({"success": "정상적으로 수정되었습니다.", "change_chance": bingo_pan.change_chance}, status=status.HTTP_200_OK)
         
-    def delete(self, request, obj_id, *args, **kwargs):
+    def delete(self, request, location, *args, **kwargs):
         try:
-            target = BingoSpace.objects.get(id=obj_id)
+            location = int(location)
+            bingo = Bingo.objects.get(user=request.user, is_active=True)
+            target = BingoSpace.objects.get(bingo=bingo, location=location)
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         #만약 init 안된 빙고칸을 삭제하려 한다면
-        if target.recommend_content is False and target.self_content is False:
+        if target.recommend_content is None and target.self_content is None:
             return Response({"error": "빙고항목이 이미 비어있습니다."}, status=status.HTTP_202_ACCEPTED)
         
         try:
