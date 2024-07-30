@@ -27,23 +27,23 @@ class ToDoSerializer(serializers.ModelSerializer):
 
 # 후기글 작성 시리얼라이저
 class ReviewPOSTSerializer(serializers.ModelSerializer):
-    location = serializers.CharField()
+    space_location = serializers.CharField(write_only=True)
 
     class Meta:
         model = Review
-        fields = ["location", "procedure", "content", "large_category"]
+        fields = ["space_location", "procedure", "content", "large_category"]
 
     def create(self, validated_data):
         # 사용자가 입력
         large_category = validated_data['large_category']       # 분류
-        location = int(validated_data['location'])      # 빙고 칸의 위치(0~8)
+        location = int(validated_data.pop('space_location'))      # 빙고 칸의 위치(0~8)
         content = validated_data['content']
         procedure = validated_data.get('procedure')     # 채용, 자격증, 대외 활동: 모집/시험 절차
         images = self.context['request'].FILES.getlist('images')        # 사용자가 올린 이미지
 
         # 자동 입력
-        user = self.context['user'].user
-        bingo = Bingo.objects.get(user=user, is_activate=True)
+        user = self.context['request'].user
+        bingo = Bingo.objects.get(user=user, is_active=True)
         bingo_space = BingoSpace.objects.get(bingo=bingo, location=location)
         todo = bingo_space.todo.all()
         date = bingo_space.date     # 자격증: 시험 날짜
