@@ -3,10 +3,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Portfolio, ThisIsMe, BingoComplete, OtherComplete
+from review_information.models import Review, ReviewImage
+from review_information.serializers import ReviewGETSerializer
+from django.db.models import Q
+from rest_framework.permissions import IsAuthenticated
+from django.utils.dateparse import parse_date
 
 
 # 포트폴리오 뷰
 class PortfolioAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     # 기본 정보 입력
     def post(self, request, *args, **kwargs):
@@ -74,6 +80,7 @@ class PortfolioAPIView(APIView):
 
 # 저는 이런 사람입니다 작성 뷰
 class ThisIsMeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = ThisIsMeSerializer(data=request.data)
@@ -95,6 +102,7 @@ class ThisIsMeAPIView(APIView):
 
 # 저는 이런 사람입니다 삭제 뷰
 class ThisIsMeDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, id):
         
@@ -111,6 +119,7 @@ class ThisIsMeDetailAPIView(APIView):
 
 # 달성한 빙고 작성 뷰
 class BingoCompleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = BingoCompleteSerializer(data=request.data)
@@ -132,6 +141,7 @@ class BingoCompleteAPIView(APIView):
 
 # 저는 이런 사람입니다 삭제 뷰
 class BingoCompleteDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, id):
         
@@ -148,6 +158,7 @@ class BingoCompleteDetailAPIView(APIView):
 
 # 다른 성과 작성 뷰
 class OtherCompleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = OtherCompleteSerializer(data=request.data)
@@ -169,6 +180,7 @@ class OtherCompleteAPIView(APIView):
 
 # 다른 성과 삭제 뷰
 class OtherCompleteDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, id):
         
@@ -181,3 +193,36 @@ class OtherCompleteDetailAPIView(APIView):
         return Response({
             "message": "항목이 성공적으로 삭제되었습니다."
         },status=status.HTTP_204_NO_CONTENT)
+    
+
+# 사용자의 후기 글 가져오기
+class UserReviewAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        only = request.query_params.get('only')
+
+        # 사용자에 대한 모든 후기글 기본 쿼리셋 설정
+        reviews = Review.objects.filter(user=user)
+
+        # 기간 설정이 있는 경우 필터링
+        if start_date or end_date:
+            start_date = parse_date(start_date) if start_date else None
+            end_date = parse_date(end_date) if end_date else None
+
+            if start_date and end_date:
+                reviews = reviews.filter(Q(start_date__lte=end_date) & Q(end_date__gte=start_date))
+            elif start_date:
+                reviews = reviews.filter(Q(start_date__gte=start_date))
+            elif end_date:
+                reviews = reviews.filter(Q(end_date__lte=end_date))
+
+        # 빙고 후기글만 가져오기
+        if only == 'bingo':
+            reviews = reviews.exclude(bingo_space__isnull=True)
+
+        serializer = ReviewGETSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
