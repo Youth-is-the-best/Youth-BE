@@ -10,6 +10,7 @@ from users.permissions import IsAuthor
 from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
+from rest_framework.pagination import PageNumberPagination
 
 
 # 빙고 저장 & 불러오기
@@ -328,6 +329,8 @@ class BingoRecsAPIView(APIView):
 class BingoUpcomingAPIView(generics.ListAPIView):
     queryset = ProvidedBingoItem.objects.filter(date_field__gte=timezone.now()).order_by('app_due')
     serializer_class = [ProvidedBingoItemSerializer]
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 12  # Limit to 10 results per page
 
 class BingoSavedAPIView(APIView):
     pass
