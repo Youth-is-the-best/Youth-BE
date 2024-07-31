@@ -16,9 +16,14 @@ class CustomBingoItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class ProvidedBingoItemSerializer(serializers.ModelSerializer):
+    large_category_display = serializers.SerializerMethodField()
+
     class Meta:
         model = ProvidedBingoItem
         fields = "__all__"
+
+    def get_large_category_display(self, obj):
+        return obj.get_large_category_display()
 
 class ToDoSerializer(serializers.ModelSerializer):
     class Meta:
