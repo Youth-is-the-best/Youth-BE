@@ -334,3 +334,7 @@ class BingoUpcomingAPIView(generics.ListAPIView):
 
 class BingoSavedAPIView(APIView):
     pass
+
+class BingoItemAPIView(generics.RetrieveAPIView):
+    queryset = ProvidedBingoItem.objects.all()
+    serializer_class = ProvidedBingoItemSerializer
