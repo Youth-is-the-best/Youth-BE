@@ -399,3 +399,27 @@ class BingoItemAPIView(generics.RetrieveAPIView):
     queryset = ProvidedBingoItem.objects.all()
     serializer_class = ProvidedBingoItemSerializer
 
+
+# 공고 개별 글
+class NoticeDetailAPIView(APIView):
+    def get(self, request, id, *args, **kwargs):
+        try:
+            # 공고인 ProvidedBingoItem을 가져오기
+            item = ProvidedBingoItem.objects.get(id=id)
+        except ProvidedBingoItem.DoesNotExist:
+            return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            notice_data = Notice.objects.get(provided_bingo_item=item)
+        except Notice.DoesNotExist:
+            return Response({"error": "요청한 공고 정보가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        item_serializer = ProvidedBingoItemSerializer(item)
+        notice_serializer = NoticeSerializer(notice_data)
+
+        json_data = {
+            'bingo_item': item_serializer.data,
+            'notice_information': notice_serializer.data
+        }
+
+        return Response(json_data, status=status.HTTP_200_OK)
