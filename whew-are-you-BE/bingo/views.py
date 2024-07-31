@@ -9,6 +9,7 @@ from .serializers import *
 from users.permissions import IsAuthor
 from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.utils import timezone
 
 
 # 빙고 저장 & 불러오기
@@ -324,3 +325,9 @@ class BingoRecsAPIView(APIView):
 
         return Response({"success": "유형별 추천 항목", "data": serializer_data}, status=status.HTTP_200_OK)
 
+class BingoUpcomingAPIView(generics.ListAPIView):
+    queryset = ProvidedBingoItem.objects.filter(date_field__gte=timezone.now()).order_by('app_due')
+    serializer_class = [ProvidedBingoItemSerializer]
+
+class BingoSavedAPIView(APIView):
+    pass
