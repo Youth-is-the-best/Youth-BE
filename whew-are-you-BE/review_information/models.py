@@ -145,7 +145,7 @@ class Information(models.Model):
     content = models.TextField()
 
     # 좋아요, 보관함
-    likes = models.ManyToManyField(CustomUser, related_name='like_informaion', blank=True)
+    likes = models.ManyToManyField(CustomUser, related_name='like_information', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_information', blank=True)
 
 
