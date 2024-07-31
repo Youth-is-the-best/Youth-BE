@@ -41,4 +41,5 @@ urlpatterns = [
     path('information/', include('review_information.information_urls')),
     path('review/', include('review_information.review_urls')),
     path('portfolio/', include('portfolio.urls')),
+    path('my/', include('mypage.urls')),
 ]
