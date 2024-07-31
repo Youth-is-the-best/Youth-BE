@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .serializers import *
 from users.permissions import IsAuthor
+from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
 
 
@@ -42,7 +43,7 @@ class BingoAPIView(APIView):
             if item:
                 location = item.get('location')     # 빙고 칸의 위치
                 choice = item.get('choice')     # 직접 입력 항목이면 "0", 끌어온 항목이면 "1"
-                item_id = item.get('id')
+                item_id = item.get('id')        # 추천 항목의 경우만 처음부터 item_id를 갖는다.
                 if item_id:
                     item_id = int(item_id)      # item_id를 정수 처리
                 title = item.get('title')
@@ -66,7 +67,7 @@ class BingoAPIView(APIView):
                 
                 #투두 등록하기
                 for todo in todos:
-                    ToDo.objects.create(title=todo.title, bingo=bingo, bingo_space=bingo_space, user=user)
+                    ToDo.objects.create(title=todo['title'], bingo=bingo, bingo_space=bingo_space, user=user)
                 
             # null인 경우
             if not item:
@@ -115,7 +116,7 @@ class BingoAPIView(APIView):
                     "item_id": item.id,
                     "content_id": str(item.recommend_content.id),
                     "title": item.recommend_content.title,
-                    "todo": todos
+                    "todo": ToDoSerializer(todos, many=True).data
                 })
             elif item.self_content:
                 bingo_obj.append({
@@ -125,7 +126,7 @@ class BingoAPIView(APIView):
                     "item_id": item.id,
                     "content_id": str(item.self_content.id),
                     "title": item.self_content.title,
-                    "todo": todos
+                    "todo": ToDoSerializer(todos, many=True).data
                 })
             else:
                 bingo_obj.append(None)
@@ -159,11 +160,13 @@ class BingoAPIView(APIView):
     
 
 class BingoObjAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAuthor]
+    permission_classes = [IsAuthenticated, IsAuthor, IsValidLoc]
     
-    def get(self, request, obj_id, *args, **kwargs):
+    def get(self, request, location, *args, **kwargs):
         try:
-            target = BingoSpace.objects.get(id=obj_id)
+            location = int(location)
+            bingo = Bingo.objects.get(user=request.user, is_active=True)
+            target = BingoSpace.objects.get(bingo=bingo, location=location)
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -175,19 +178,22 @@ class BingoObjAPIView(APIView):
 
             # 2. 빙고 항목 정보 불러오기
             if target.recommend_content:
-                assert(target.self_content == False)
-                item = ProvidedBingoItem.objects.get(id=target.recommend_content.id)
+                assert(target.self_content is None)
+                try:
+                    item = ProvidedBingoItem.objects.get(id=target.recommend_content.id)
+                except Exception as e:
+                    print("ProvidedBingoItem 가져오는 중 오류", e, type(e))
+                    raise e
                 item_serialized = ProvidedBingoItemSerializer(item)
                 data['bingo_item'] = item_serialized.data
 
             if target.self_content:
-                print("target.self_content", target.self_content)
-                # assert(target.recommend_content == False)
+                assert(target.recommend_content is None)
                 try:
                     item = CustomBingoItem.objects.get(id=target.self_content.id)
                 except Exception as e:
-                    print("야야야여기에러있다!!!", e)
-                print("item", item)
+                    print("CustomBingoItem 가져오는 중 오류", e, type(e))
+                    raise e
                 item_serialized = CustomBingoItemSerializer(item)
                 data['bingo_item'] = item_serialized.data
 
@@ -197,41 +203,57 @@ class BingoObjAPIView(APIView):
             data['todo'] = todo_serialized.data
 
             return Response(data, status=status.HTTP_200_OK)
-        except:
-            return Response({"error": "서버 오류가 발생했습니다.e"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print(f"Exception: {e}, Type: {type(e)}")
+            return Response({"error": "서버 오류가 발생했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def put(self, request, obj_id, *args, **kwargs):
+    def put(self, request, location, *args, **kwargs):
         try:
-            target = BingoSpace.objects.get(id=obj_id)
+            location = int(location)
+            bingo = Bingo.objects.get(user=request.user, is_active=True)
+            target = BingoSpace.objects.get(bingo=bingo, location=location)
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         bingo_pan = Bingo.objects.get(id=target.bingo.id)
         if not bingo_pan.change_chance > 0:
-            return Response({'error': '빙고 수정 기회를 모두 소진하였습니다.'}, status=status.HTTP_417_EXPECTATION_FAILED)
+            return Response({'error': '빙고 수정 기회를 모두 소진하였습니다.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try: 
             serializer = BingoSpaceSerializer(target, data=request.data.get('bingo_space'))
             if serializer.is_valid():
+                #TODO: 원래는 is_executed 등 함부로 못 바꾸게 sanitize 해야.
                 serializer.save()
 
-            choice = request.data.get('choice')
-            if choice == "0": # 직접입력의 경우
+            # choice 변수 대신 자동으로 수정 가능 여부 판단
+            if target.self_content is not None and target.recommend_content is None: # 직접입력의 경우
                 serializer = CustomBingoItemSerializer(target.self_content, data=request.data.get('bingo_item'))
-                if serializer.is_valid():
-                    serializer.save()
-            elif choice == "1": # 끌어오기항목의 경우
-                serializer = ProvidedBingoItemSerializer(target.recommend_content, data=request.data.get('bingo_item'))
-                if serializer.is_valid():
-                    serializer.save()
+                if serializer.is_valid(): 
+                    serializer.save() # 들어온 그대로 바꿔준다.
+            elif target.recommend_content is not None and target.self_content is None: # 끌어오기항목의 경우
+                pass # 수정 불가하므로 아무 수정도 하지 않는다.
             else:
-                return Response({'error': "choice 값은 '0' 또는 '1'만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': "BingoSpace 객체에 문제가 있습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             todos_data = request.data.get('todo', [])
+            existing_todo_ids = set(ToDo.objects.filter(bingo_space=target).values_list('id', flat=True))
+            request_todo_ids = set()
             for todo_data in todos_data:
-                todo_serializer = ToDoSerializer(data=todo_data)
+                todo_id = todo_data.get('id')
+                if todo_id:
+                    request_todo_ids.add(todo_id)
+                    try:
+                        todo = ToDo.objects.get(id=todo_id)
+                        todo_serializer = ToDoSerializer(todo, data=todo_data)
+                    except ToDo.DoesNotExist:
+                        todo_serializer = ToDoSerializer(data=todo_data)
+                else:
+                    todo_serializer = ToDoSerializer(data=todo_data)
+
                 if todo_serializer.is_valid():
                     todo_serializer.save(bingo_space=target)
+            to_delete_ids = existing_todo_ids - request_todo_ids
+            ToDo.objects.filter(id__in=to_delete_ids).delete()
 
         except Exception as e:
             return Response({"error": "형식이 올바르지 못한 요청입니다.", "err_msg": str(e)}, status=status.HTTP_400_BAD_REQUEST)                                                
@@ -241,14 +263,16 @@ class BingoObjAPIView(APIView):
 
         return Response({"success": "정상적으로 수정되었습니다.", "change_chance": bingo_pan.change_chance}, status=status.HTTP_200_OK)
         
-    def delete(self, request, obj_id, *args, **kwargs):
+    def delete(self, request, location, *args, **kwargs):
         try:
-            target = BingoSpace.objects.get(id=obj_id)
+            location = int(location)
+            bingo = Bingo.objects.get(user=request.user, is_active=True)
+            target = BingoSpace.objects.get(bingo=bingo, location=location)
         except BingoSpace.DoesNotExist:
             return Response({"error": "요청한 빙고항목이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         #만약 init 안된 빙고칸을 삭제하려 한다면
-        if target.recommend_content is False and target.self_content is False:
+        if target.recommend_content is None and target.self_content is None:
             return Response({"error": "빙고항목이 이미 비어있습니다."}, status=status.HTTP_202_ACCEPTED)
         
         try:
