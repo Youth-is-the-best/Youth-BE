@@ -42,10 +42,11 @@ class ProvidedBingoItem(BaseBingoItem):
 
 
 class Notice(models.Model):
-    ProvidedBingoItem = models.OneToOneField(ProvidedBingoItem, on_delete=models.CASCADE, related_name='notice')        # 1:1 연결
+    provided_bingo_item = models.OneToOneField(ProvidedBingoItem, on_delete=models.CASCADE, related_name='notice')        # 1:1 연결
     content = models.TextField()        # 설명글
     likes = models.ManyToManyField(CustomUser, related_name='like_notice', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
+    image = models.ImageField(blank=True, null=True)
 
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo
+from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice
 from review_information.models import ReviewImage, Review
 from rest_framework import status
 from rest_framework.response import Response
@@ -24,6 +24,13 @@ class ToDoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ToDo
         fields = "__all__"
+
+
+# 공고 시리얼라이저
+class NoticeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notice
+        fields = '__all__'
 
 
 # 후기글 작성 시리얼라이저

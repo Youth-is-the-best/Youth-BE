@@ -42,5 +42,5 @@ urlpatterns = [
     path('review/', include('review_information.review_urls')),
     path('portfolio/', include('portfolio.urls')),
     path('my/', include('mypage.urls')),
-    path('notice/', include('bingo.review_urls')),
+    path('notice/', include('bingo.notice_urls')),
 ]
