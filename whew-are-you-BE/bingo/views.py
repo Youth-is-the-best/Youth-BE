@@ -394,3 +394,8 @@ class NoticeStorageAPIView(APIView):
         else:
             notice.storage.add(request.user)
             return Response({'message': '보관함 항목에 추가되었습니다.'})
+
+class BingoItemAPIView(generics.RetrieveAPIView):
+    queryset = ProvidedBingoItem.objects.all()
+    serializer_class = ProvidedBingoItemSerializer
+
