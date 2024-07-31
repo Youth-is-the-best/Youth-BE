@@ -162,6 +162,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 12,  # Limit to 10 results per page
+    'DATE_FORMAT': '%Y.%m.%d',
 }
 
 REST_USE_JWT = True
