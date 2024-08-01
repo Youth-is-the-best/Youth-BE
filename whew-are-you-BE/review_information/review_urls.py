@@ -7,5 +7,5 @@ urlpatterns = [
     path('likes/<int:id>/', ReviewLikeAPIView.as_view()),
     path('storages/<int:id>/', ReviewStorageAPIView.as_view()),
     path('<int:review_id>/comments/', CommentAPIView.as_view()),
-    path('<int:review_id>/comments/<int:comment_id>/', CommentDetailAPIView.as_view()),
+    path('comments/<int:comment_id>/', CommentDetailAPIView.as_view()),
 ]

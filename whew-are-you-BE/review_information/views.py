@@ -163,27 +163,13 @@ class CommentAPIView(APIView):
 class CommentDetailAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request, *args, **kwargs):
-        comment_id = kwargs.get('pk')
-        comment = Comment.objects.get(pk=comment_id)
-        serializer = CommentSerializer(comment)
-        return Response(serializer.data)
-
-    def put(self, request, *args, **kwargs):
-        comment_id = kwargs.get('pk')
-        comment = Comment.objects.get(pk=comment_id)
-        if request.user == comment.author:
-            serializer = CommentSerializer(comment, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    def delete(self, request, *args, **kwargs):
-        comment_id = kwargs.get('pk')
-        comment = Comment.objects.get(pk=comment_id)
+    def delete(self, request, comment_id, *args, **kwargs):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except:
+            return Response({"error": "댓글이 존재하지 않습니다."})
+        
         if request.user == comment.author:
             comment.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "댓글이 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
