@@ -341,9 +341,14 @@ class BingoSavedAPIView(APIView):
         stored_reviews = user.storage_review.all()
         stored_reviews = ReviewGETSerializer(stored_reviews, many=True).data
         # 이런식으로 공고도 불러오기(info가 아니라 notice 가 들어와야 함, info는 빙고로 못 끌어간다.)
-        stored_info = user.storage_information.all()
-        stored_info = InformationGETSerializer(stored_info, many=True).data
+        stored_notices = user.storage_notice.all()
+        stored_info = NoticeSerializer(stored_notices, many=True).data
         return Response({"success": "저장된 항목", "stored_reviews": stored_reviews, "stored_notices": stored_info}, status=status.HTTP_200_OK)
+
+
+class BingoItemAPIView(generics.RetrieveAPIView):
+    queryset = ProvidedBingoItem.objects.all()
+    serializer_class = ProvidedBingoItemSerializer
 
 
 # 공고
@@ -404,10 +409,6 @@ class NoticeStorageAPIView(APIView):
         else:
             notice.storage.add(request.user)
             return Response({'message': '보관함 항목에 추가되었습니다.'})
-
-class BingoItemAPIView(generics.RetrieveAPIView):
-    queryset = ProvidedBingoItem.objects.all()
-    serializer_class = ProvidedBingoItemSerializer
 
 
 # 공고 개별 글

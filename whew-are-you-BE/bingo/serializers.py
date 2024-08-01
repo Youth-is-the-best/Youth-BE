@@ -37,6 +37,15 @@ class NoticeSerializer(serializers.ModelSerializer):
         model = Notice
         fields = '__all__'
 
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        provided_origin = instance.provided_bingo_item
+        provided_origin_serializer = ProvidedBingoItemSerializer(provided_origin).data 
+        for key, value in provided_origin_serializer.items():
+            if key != 'id':
+                rep[key] = value
+        return rep
+
 
 # 후기글 작성 시리얼라이저
 class ReviewPOSTSerializer(serializers.ModelSerializer):
