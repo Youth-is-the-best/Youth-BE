@@ -4,7 +4,7 @@ from review_information.models import Review, Information
 
 # 알림창 모델
 class News(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)     # 사용자
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)     # 사용자
     created_at = models.DateTimeField(auto_now_add=True)        # 알림 생성 시간
     created_at_day = models.DateTimeField(auto_now_add=True)        # 알림 생성 날짜
 

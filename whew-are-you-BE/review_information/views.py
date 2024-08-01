@@ -145,6 +145,11 @@ class ReviewLikeAPIView(APIView):
         if request.user in review.likes.all():
             review.likes.remove(request.user)
 
+            return Response({'message': '좋아요가 취소되었습니다.'})
+        
+        else:
+            review.likes.add(request.user)
+
             # 후기글의 작성자에게 알림을 생성
             if request.user != review.user:
                 who = request.user.username
@@ -152,10 +157,6 @@ class ReviewLikeAPIView(APIView):
                 content = who + '님이 [' + where + '] 글에 좋아요를 눌렀습니다.' 
                 news = News.objects.create(user=review.user, category='HEART', who=who, where=where, content=content, review=review)
 
-            return Response({'message': '좋아요가 취소되었습니다.'})
-        
-        else:
-            review.likes.add(request.user)
             return Response({'message': '좋아요가 반영되었습니다.'})
         
 
@@ -187,6 +188,15 @@ class CommentAPIView(APIView):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(author=request.user, review=review)
+
+            # 후기글의 작성자에게 알림을 생성
+            if request.user != review.user:
+                who = request.user.username
+                where = review.title
+                content = who + '님이 [' + where + '] 글에 댓글을 남겼습니다.' 
+                small_content = serializer.data['content']
+                news = News.objects.create(user=review.user, category='COMMENT', who=who, where=where, content=content, small_content=small_content, review=review)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

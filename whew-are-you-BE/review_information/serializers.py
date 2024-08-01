@@ -213,7 +213,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     author_name = serializers.CharField(source='author.username', read_only=True)
     replies = serializers.SerializerMethodField()
-    user_type = serializers.CharField(source='author.type_result.user_type')
+    user_type = serializers.CharField(source='author.type_result.user_type', read_only=True)
 
     class Meta:
         model = Comment
