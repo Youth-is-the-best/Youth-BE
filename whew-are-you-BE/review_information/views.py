@@ -156,14 +156,35 @@ class ReviewStorageAPIView(APIView):
 # 댓글 뷰
 class CommentAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
+    def get(self, request, review_id, *args, **kwargs):
+        comments = Comment.objects.filter(review_id=review_id, parent__isnull=True)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
     def post(self, request, review_id, *args, **kwargs):
         review = Review.objects.get(id=review_id)
-        serializer = CommentSerializer(data=request.data, context={'request':request})
+        serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(review=review, author=request.user)
+            serializer.save(author=request.user, review=review)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentDetailAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def delete(self, request, comment_id, *args, **kwargs):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except:
+            return Response({"error": "댓글이 존재하지 않습니다."})
+        
+        if request.user == comment.author:
+            comment.delete()
+            return Response({"message": "댓글이 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
     
     def get(self, request, review_id, format=None):
         review = Review.objects.get(id=review_id)
@@ -233,3 +254,4 @@ class SearchAPIView(APIView):
         response['review'] = serializer.data
 
         return Response(response, status=status.HTTP_200_OK)
+

@@ -187,8 +187,17 @@ class ReviewGETSerializer(serializers.ModelSerializer):
 
 # 댓글 시리얼라이저
 class CommentSerializer(serializers.ModelSerializer):
-    # 유형 사진 나중에 추가
+
+    author_name = serializers.CharField(source='author.username', read_only=True)
+    replies = serializers.SerializerMethodField()
+    user_type = serializers.CharField(source='author.type_result.user_type')
 
     class Meta:
         model = Comment
-        fields = ['content']
+        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type']
+        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type']
+
+    def get_replies(self, obj):
+        if obj.replies.exists():
+            return CommentSerializer(obj.replies.all(), many=True).data
+        return []
