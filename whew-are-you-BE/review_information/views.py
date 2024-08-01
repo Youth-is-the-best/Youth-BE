@@ -8,6 +8,9 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 import json
+from rest_framework import filters
+from django.db.models import Q
+
 
 # 모든 정보글 뷰
 class InformationAPIView(APIView):
@@ -66,12 +69,17 @@ class ReviewAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
 
-        if not large_category:
-            review = Review.objects.all()
+        if large_category:
+            reviews = Review.objects.filter(large_category=large_category)
         else:
-            review = Review.objects.filter(large_category=large_category)
-        serializer = ReviewGETSerializer(review, many=True)
+            reviews = Review.objects.all()
+
+        if search_query:
+            reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+    
+        serializer = ReviewGETSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
