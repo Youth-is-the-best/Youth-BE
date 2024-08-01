@@ -5,6 +5,8 @@ from users.models import CustomUser
 from users.serializers import CustomUserSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from .models import News
+from .serializers import NewsSerializer
 
 
 class MyInfoAPIView(APIView):
@@ -26,3 +28,13 @@ class MyInfoAPIView(APIView):
             "points": points
         }, status=status.HTTP_200_OK)
     
+
+# 알림창 API
+class NewsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        news = News.objects.filter(user=user)
+        serializer = NewsSerializer(news, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
