@@ -11,6 +11,7 @@ from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
 
 
 # 빙고 저장 & 불러오기
@@ -342,6 +343,15 @@ class NoticeAPIView(APIView):
 
         # 공고인 ProvidedBingoItem을 모두 가져오기
         provided_bingo_items = ProvidedBingoItem.objects.filter(is_notice=True)
+
+        large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
+
+        if large_category:
+            provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
+
+        if search_query:
+            provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
 
         # 반환할 데이터를 담음
         data = []
