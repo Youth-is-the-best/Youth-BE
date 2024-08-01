@@ -144,7 +144,16 @@ class ReviewLikeAPIView(APIView):
         review = get_object_or_404(Review, id=id)
         if request.user in review.likes.all():
             review.likes.remove(request.user)
+
+            # 후기글의 작성자에게 알림을 생성
+            if request.user != review.user:
+                who = request.user.username
+                where = review.title
+                content = who + '님이 [' + where + '] 글에 좋아요를 눌렀습니다.' 
+                news = News.objects.create(user=review.user, category='HEART', who=who, where=where, content=content, review=review)
+
             return Response({'message': '좋아요가 취소되었습니다.'})
+        
         else:
             review.likes.add(request.user)
             return Response({'message': '좋아요가 반영되었습니다.'})
