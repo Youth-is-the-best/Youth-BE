@@ -11,6 +11,7 @@ from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
 from review_information.serializers import InformationGETSerializer, ReviewGETSerializer
 from django.utils import timezone
 from datetime import timedelta
@@ -373,6 +374,23 @@ class NoticeAPIView(APIView):
 
         # 공고인 ProvidedBingoItem을 모두 가져오기
         provided_bingo_items = ProvidedBingoItem.objects.filter(is_notice=True)
+
+        large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
+
+        if large_category:
+            provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
+
+        if search_query:
+            provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
 
         # 반환할 데이터를 담음
         data = []

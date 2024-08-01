@@ -160,3 +160,5 @@ class Comment(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='author')        # 사용자
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments')        # 후기글
     content = models.TextField()        # 댓글 내용
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)     # 대댓글
+    created_at = models.DateTimeField(auto_now_add=True)

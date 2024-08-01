@@ -174,17 +174,30 @@ class ReviewSerializer(serializers.ModelSerializer):
 class ReviewGETSerializer(serializers.ModelSerializer):
     images = ReviewImageSerializer(many=True, read_only=True)
     detailplans = DetailPlanSerializer(many=True)
+    large_category_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
-                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes']
+                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display']
+        
+    def get_large_category_display(self, obj):
+        return obj.get_large_category_display()
         
 
 # 댓글 시리얼라이저
 class CommentSerializer(serializers.ModelSerializer):
-    # 유형 사진 나중에 추가
+
+    author_name = serializers.CharField(source='author.username', read_only=True)
+    replies = serializers.SerializerMethodField()
+    user_type = serializers.CharField(source='author.type_result.user_type')
 
     class Meta:
         model = Comment
-        fields = ['content']
+        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type']
+        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type']
+
+    def get_replies(self, obj):
+        if obj.replies.exists():
+            return CommentSerializer(obj.replies.all(), many=True).data
+        return []

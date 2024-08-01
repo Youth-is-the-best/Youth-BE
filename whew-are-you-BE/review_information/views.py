@@ -8,8 +8,11 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 import json
-from bingo.models import ProvidedBingoItem
 from django.db.models import Count
+from rest_framework import filters
+from django.db.models import Q
+from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
+from bingo.models import ProvidedBingoItem, Notice
 
 
 # 모든 정보글 뷰
@@ -69,12 +72,26 @@ class ReviewAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
 
-        if not large_category:
-            review = Review.objects.all()
+
+        if large_category:
+            reviews = Review.objects.filter(large_category=large_category)
         else:
-            review = Review.objects.filter(large_category=large_category)
-        serializer = ReviewGETSerializer(review, many=True)
+            reviews = Review.objects.all()
+
+        if search_query:
+            reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
+    
+        serializer = ReviewGETSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -149,14 +166,35 @@ class ReviewStorageAPIView(APIView):
 # 댓글 뷰
 class CommentAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
+    def get(self, request, review_id, *args, **kwargs):
+        comments = Comment.objects.filter(review_id=review_id, parent__isnull=True)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
     def post(self, request, review_id, *args, **kwargs):
         review = Review.objects.get(id=review_id)
-        serializer = CommentSerializer(data=request.data, context={'request':request})
+        serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(review=review, author=request.user)
+            serializer.save(author=request.user, review=review)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentDetailAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def delete(self, request, comment_id, *args, **kwargs):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except:
+            return Response({"error": "댓글이 존재하지 않습니다."})
+        
+        if request.user == comment.author:
+            comment.delete()
+            return Response({"message": "댓글이 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
     
     def get(self, request, review_id, format=None):
         review = Review.objects.get(id=review_id)
@@ -175,6 +213,7 @@ class CommentAPIView(APIView):
 
             response_data.append(json)
         return Response(response_data)
+
         
 class FetchRelatedReviewsAPIView(APIView):
 
@@ -187,3 +226,70 @@ class FetchRelatedReviewsAPIView(APIView):
         related_serializer = ReviewGETSerializer(top_reviews, many=True).data
 
         return Response({"success": "연관 후기 3개", "data": related_serializer}, status=status.HTTP_200_OK)
+    
+
+# 공고, 후기 전체 검색 뷰
+class SearchAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        # 응답할 json
+        response = {}
+
+        # 공고인 ProvidedBingoItem을 모두 가져오기
+        provided_bingo_items = ProvidedBingoItem.objects.filter(is_notice=True)
+
+        large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
+
+        if large_category:
+            provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
+
+        if area:
+            provided_bingo_items = provided_bingo_items.filter(area=area)
+
+        if field:
+            provided_bingo_items = provided_bingo_items.filter(field=field)
+
+        if search_query:
+            provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
+
+        # 반환할 데이터를 담음
+        data = []
+        
+        for item in provided_bingo_items:
+            item_serializer = ProvidedBingoItemSerializer(item)
+            notice_data = Notice.objects.get(provided_bingo_item=item)
+            notice_serializer = NoticeSerializer(notice_data)
+
+            json_data = {}
+            json_data['bingo_item'] = item_serializer.data
+            json_data['notice_information'] = notice_serializer.data
+
+            data.append(json_data)
+
+        # 공고 글 데이터 담기
+        response['notice'] = data
+
+        if large_category:
+            reviews = Review.objects.filter(large_category=large_category)
+        else:
+            reviews = Review.objects.all()
+
+        if search_query:
+            reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
+    
+        serializer = ReviewGETSerializer(reviews, many=True)
+
+        response['review'] = serializer.data
+
+        return Response(response, status=status.HTTP_200_OK)
+
+
