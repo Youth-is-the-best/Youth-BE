@@ -146,30 +146,44 @@ class ReviewStorageAPIView(APIView):
 # 댓글 뷰
 class CommentAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
+    def get(self, request, review_id, *args, **kwargs):
+        comments = Comment.objects.filter(review_id=review_id, parent__isnull=True)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
     def post(self, request, review_id, *args, **kwargs):
         review = Review.objects.get(id=review_id)
-        serializer = CommentSerializer(data=request.data, context={'request':request})
+        serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(review=review, author=request.user)
+            serializer.save(author=request.user, review=review)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def get(self, request, review_id, format=None):
-        review = Review.objects.get(id=review_id)
-        comments = Comment.objects.filter(review=review)
 
-        response_data = []
+class CommentDetailAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-        for comment in comments:
-            json = {
-                'id': comment.id,
-                'content': comment.content,
-                'author': comment.author.id,
-                'review': comment.review.id,
-                'user_type': comment.author.type_result.user_type
-            }
+    def get(self, request, *args, **kwargs):
+        comment_id = kwargs.get('pk')
+        comment = Comment.objects.get(pk=comment_id)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
 
-            response_data.append(json)
-        return Response(response_data)
-        
+    def put(self, request, *args, **kwargs):
+        comment_id = kwargs.get('pk')
+        comment = Comment.objects.get(pk=comment_id)
+        if request.user == comment.author:
+            serializer = CommentSerializer(comment, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    def delete(self, request, *args, **kwargs):
+        comment_id = kwargs.get('pk')
+        comment = Comment.objects.get(pk=comment_id)
+        if request.user == comment.author:
+            comment.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)
