@@ -34,21 +34,10 @@ class BaseBingoItem(models.Model):
     class Meta:
         abstract = True
 
-
 class ProvidedBingoItem(BaseBingoItem):
     type = models.ForeignKey('typetest.Type', on_delete=models.SET_NULL, null=True)
     is_editable = models.BooleanField(default=False)
     is_notice = models.BooleanField(default=False)      # 공고 인지
-
-
-class Notice(models.Model):
-    provided_bingo_item = models.OneToOneField(ProvidedBingoItem, on_delete=models.CASCADE, related_name='notice')        # 1:1 연결
-    content = models.TextField()        # 설명글
-    likes = models.ManyToManyField(CustomUser, related_name='like_notice', blank=True)
-    storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
-    image = models.ImageField(blank=True, null=True)
-
-
 
 class CustomBingoItem(BaseBingoItem):
     is_editable = models.BooleanField(default=True)
@@ -85,3 +74,12 @@ class ToDo(models.Model):
     bingo = models.ForeignKey(Bingo, on_delete=models.CASCADE)
     bingo_space = models.ForeignKey(BingoSpace, on_delete=models.CASCADE, related_name='todo')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  
+
+
+# 공고 
+class Notice(models.Model):
+    provided_bingo_item = models.OneToOneField(ProvidedBingoItem, on_delete=models.CASCADE, related_name='notice')        # 1:1 연결
+    content = models.TextField()        # 설명글
+    likes = models.ManyToManyField(CustomUser, related_name='like_notice', blank=True)
+    storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
+    image = models.ImageField(blank=True, null=True)

@@ -11,6 +11,8 @@ from .permissions import IsValidLoc
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
+from review_information.serializers import InformationGETSerializer, ReviewGETSerializer
 
 
 # 빙고 저장 & 불러오기
@@ -333,7 +335,21 @@ class BingoUpcomingAPIView(generics.ListAPIView):
     pagination_class.page_size = 12  # Limit to 10 results per page
 
 class BingoSavedAPIView(APIView):
-    pass
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        stored_reviews = user.storage_review.all()
+        stored_reviews = ReviewGETSerializer(stored_reviews, many=True).data
+        # 이런식으로 공고도 불러오기(info가 아니라 notice 가 들어와야 함, info는 빙고로 못 끌어간다.)
+        stored_notices = user.storage_notice.all()
+        stored_info = NoticeSerializer(stored_notices, many=True).data
+        return Response({"success": "저장된 항목", "stored_reviews": stored_reviews, "stored_notices": stored_info}, status=status.HTTP_200_OK)
+
+
+class BingoItemAPIView(generics.RetrieveAPIView):
+    queryset = ProvidedBingoItem.objects.all()
+    serializer_class = ProvidedBingoItemSerializer
 
 
 # 공고
@@ -342,6 +358,15 @@ class NoticeAPIView(APIView):
 
         # 공고인 ProvidedBingoItem을 모두 가져오기
         provided_bingo_items = ProvidedBingoItem.objects.filter(is_notice=True)
+
+        large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
+
+        if large_category:
+            provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
+
+        if search_query:
+            provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
 
         # 반환할 데이터를 담음
         data = []
@@ -394,10 +419,6 @@ class NoticeStorageAPIView(APIView):
         else:
             notice.storage.add(request.user)
             return Response({'message': '보관함 항목에 추가되었습니다.'})
-
-class BingoItemAPIView(generics.RetrieveAPIView):
-    queryset = ProvidedBingoItem.objects.all()
-    serializer_class = ProvidedBingoItemSerializer
 
 
 # 공고 개별 글

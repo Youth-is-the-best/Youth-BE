@@ -43,4 +43,5 @@ urlpatterns = [
     path('portfolio/', include('portfolio.urls')),
     path('my/', include('mypage.urls')),
     path('notice/', include('bingo.notice_urls')),
+    path('search/', include('review_information.search_urls'))
 ]

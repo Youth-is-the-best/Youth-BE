@@ -8,6 +8,11 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 import json
+from rest_framework import filters
+from django.db.models import Q
+from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
+from bingo.models import ProvidedBingoItem, Notice
+
 
 # 모든 정보글 뷰
 class InformationAPIView(APIView):
@@ -66,12 +71,17 @@ class ReviewAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
 
-        if not large_category:
-            review = Review.objects.all()
+        if large_category:
+            reviews = Review.objects.filter(large_category=large_category)
         else:
-            review = Review.objects.filter(large_category=large_category)
-        serializer = ReviewGETSerializer(review, many=True)
+            reviews = Review.objects.all()
+
+        if search_query:
+            reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+    
+        serializer = ReviewGETSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -160,6 +170,7 @@ class CommentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class CommentDetailAPIView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -173,3 +184,74 @@ class CommentDetailAPIView(APIView):
             comment.delete()
             return Response({"message": "댓글이 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
+
+    
+    def get(self, request, review_id, format=None):
+        review = Review.objects.get(id=review_id)
+        comments = Comment.objects.filter(review=review)
+
+        response_data = []
+
+        for comment in comments:
+            json = {
+                'id': comment.id,
+                'content': comment.content,
+                'author': comment.author.id,
+                'review': comment.review.id,
+                'user_type': comment.author.type_result.user_type
+            }
+
+            response_data.append(json)
+        return Response(response_data)
+    
+
+# 공고, 후기 전체 검색 뷰
+class SearchAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        # 응답할 json
+        response = {}
+
+        # 공고인 ProvidedBingoItem을 모두 가져오기
+        provided_bingo_items = ProvidedBingoItem.objects.filter(is_notice=True)
+
+        large_category = request.query_params.get('large_category', None)
+        search_query = request.query_params.get('search', None)
+
+        if large_category:
+            provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
+
+        if search_query:
+            provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
+
+        # 반환할 데이터를 담음
+        data = []
+        
+        for item in provided_bingo_items:
+            item_serializer = ProvidedBingoItemSerializer(item)
+            notice_data = Notice.objects.get(provided_bingo_item=item)
+            notice_serializer = NoticeSerializer(notice_data)
+
+            json_data = {}
+            json_data['bingo_item'] = item_serializer.data
+            json_data['notice_information'] = notice_serializer.data
+
+            data.append(json_data)
+
+        # 공고 글 데이터 담기
+        response['notice'] = data
+
+        if large_category:
+            reviews = Review.objects.filter(large_category=large_category)
+        else:
+            reviews = Review.objects.all()
+
+        if search_query:
+            reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+    
+        serializer = ReviewGETSerializer(reviews, many=True)
+
+        response['review'] = serializer.data
+
+        return Response(response, status=status.HTTP_200_OK)
+

@@ -174,11 +174,15 @@ class ReviewSerializer(serializers.ModelSerializer):
 class ReviewGETSerializer(serializers.ModelSerializer):
     images = ReviewImageSerializer(many=True, read_only=True)
     detailplans = DetailPlanSerializer(many=True)
+    large_category_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
-                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes']
+                  'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display']
+        
+    def get_large_category_display(self, obj):
+        return obj.get_large_category_display()
         
 
 # 댓글 시리얼라이저
