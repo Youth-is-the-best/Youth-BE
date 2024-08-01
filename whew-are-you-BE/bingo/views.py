@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework import generics
 from users.models import CustomUser
-from .models import Bingo, BingoSpace, ProvidedBingoItem, CustomBingoItem, ToDo
+from .models import Bingo, BingoSpace, ProvidedBingoItem, CustomBingoItem, ToDo, Notice
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -345,6 +345,91 @@ class BingoSavedAPIView(APIView):
         stored_info = InformationGETSerializer(stored_info, many=True).data
         return Response({"success": "저장된 항목", "stored_reviews": stored_reviews, "stored_notices": stored_info}, status=status.HTTP_200_OK)
 
+
+# 공고
+class NoticeAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+
+        # 공고인 ProvidedBingoItem을 모두 가져오기
+        provided_bingo_items = ProvidedBingoItem.objects.filter(is_notice=True)
+
+        # 반환할 데이터를 담음
+        data = []
+        
+        for item in provided_bingo_items:
+            item_serializer = ProvidedBingoItemSerializer(item)
+            notice_data = Notice.objects.get(provided_bingo_item=item)
+            notice_serializer = NoticeSerializer(notice_data)
+
+            json_data = {}
+            json_data['bingo_item'] = item_serializer.data
+            json_data['notice_information'] = notice_serializer.data
+
+            data.append(json_data)
+
+        return Response(data, status=status.HTTP_200_OK)
+    
+
+# 좋아요
+class NoticeLikeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id, *args, **kwargs):
+        try:
+            notice = Notice.objects.get()
+        except BingoSpace.DoesNotExist:
+            return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user in notice.likes.all():
+            notice.likes.remove(request.user)
+            return Response({'message': '좋아요가 취소되었습니다.'})
+        else:
+            notice.likes.add(request.user)
+            return Response({'message': '좋아요가 반영되었습니다.'})
+        
+
+# 보관함
+class NoticeStorageAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id, *args, **kwargs):
+        try:
+            notice = Notice.objects.get()
+        except BingoSpace.DoesNotExist:
+            return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user in notice.storage.all():
+            notice.storage.remove(request.user)
+            return Response({'message': '보관함 항목에서 제거되었습니다.'})
+        else:
+            notice.storage.add(request.user)
+            return Response({'message': '보관함 항목에 추가되었습니다.'})
+
 class BingoItemAPIView(generics.RetrieveAPIView):
     queryset = ProvidedBingoItem.objects.all()
     serializer_class = ProvidedBingoItemSerializer
+
+
+# 공고 개별 글
+class NoticeDetailAPIView(APIView):
+    def get(self, request, id, *args, **kwargs):
+        try:
+            # 공고인 ProvidedBingoItem을 가져오기
+            item = ProvidedBingoItem.objects.get(id=id)
+        except ProvidedBingoItem.DoesNotExist:
+            return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            notice_data = Notice.objects.get(provided_bingo_item=item)
+        except Notice.DoesNotExist:
+            return Response({"error": "요청한 공고 정보가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        item_serializer = ProvidedBingoItemSerializer(item)
+        notice_serializer = NoticeSerializer(notice_data)
+
+        json_data = {
+            'bingo_item': item_serializer.data,
+            'notice_information': notice_serializer.data
+        }
+
+        return Response(json_data, status=status.HTTP_200_OK)
