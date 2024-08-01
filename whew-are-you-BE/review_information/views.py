@@ -72,6 +72,9 @@ class ReviewAPIView(APIView):
     def get(self, request, *args, **kwargs):
         large_category = request.query_params.get('large_category', None)
         search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
+
 
         if large_category:
             reviews = Review.objects.filter(large_category=large_category)
@@ -80,6 +83,12 @@ class ReviewAPIView(APIView):
 
         if search_query:
             reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
     
         serializer = ReviewGETSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
