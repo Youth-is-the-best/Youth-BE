@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 import json
+from django.db.models import Count
 from rest_framework import filters
 from django.db.models import Q
 from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
@@ -212,6 +213,19 @@ class CommentDetailAPIView(APIView):
 
             response_data.append(json)
         return Response(response_data)
+
+        
+class FetchRelatedReviewsAPIView(APIView):
+
+    def get(self, request, bingo_item_id, *args, **kwargs):
+        bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
+        related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item)
+        annotated_reviews = related_reviews.annotate(num_likes=Count('likes'))
+        top_reviews = annotated_reviews.order_by('-num_likes') 
+        top_reviews = top_reviews[:3]       
+        related_serializer = ReviewGETSerializer(top_reviews, many=True).data
+
+        return Response({"success": "연관 후기 3개", "data": related_serializer}, status=status.HTTP_200_OK)
     
 
 # 공고, 후기 전체 검색 뷰
@@ -277,4 +291,5 @@ class SearchAPIView(APIView):
         response['review'] = serializer.data
 
         return Response(response, status=status.HTTP_200_OK)
+
 
