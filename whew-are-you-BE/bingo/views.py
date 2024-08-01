@@ -307,6 +307,13 @@ class BingoReviewAPIView(APIView):
         serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
         
         if serializer.is_valid():
+            active_bingo = Bingo.objects.get(user=request.user, is_active=True)
+            bingo_space = BingoSpace.objects.get(bingo_id=active_bingo, location=request.data.get('space_location'))
+            todos = ToDo.objects.filter(bingo_space_id=bingo_space)
+            for todo in todos: 
+                if not todo.is_completed:
+                    return Response({"error": "투두 항목이 모두 완료되어야 후기글 작성이 가능합니다.", "short_code": "todo_remaining"}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
