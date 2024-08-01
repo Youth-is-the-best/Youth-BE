@@ -180,10 +180,10 @@ class FetchRelatedReviewsAPIView(APIView):
 
     def get(self, request, bingo_item_id, *args, **kwargs):
         bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
-        related_reviews = Review.objects.filter(bingo_space__self_content = bingo_item)
+        related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item)
         annotated_reviews = related_reviews.annotate(num_likes=Count('likes'))
         top_reviews = annotated_reviews.order_by('-num_likes') 
         top_reviews = top_reviews[:3]       
-        related_serializer = ReviewGETSerializer(top_reviews, many=True)
+        related_serializer = ReviewGETSerializer(top_reviews, many=True).data
 
         return Response({"success": "연관 후기 3개", "data": related_serializer}, status=status.HTTP_200_OK)
