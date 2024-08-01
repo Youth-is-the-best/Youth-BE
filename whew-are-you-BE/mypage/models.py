@@ -5,6 +5,9 @@ from review_information.models import Review, Information
 # 알림창 모델
 class News(models.Model):
     user = models.OneToOneField(CustomUser)     # 사용자
+    created_at = models.DateTimeField(auto_now_add=True)        # 알림 생성 시간
+    created_at_day = models.DateTimeField(auto_now_add=True)        # 알림 생성 날짜
+    
     heart = models.BooleanField(default=True)       # 공감 알림 설정
     comment = models.BooleanField(default=True)     # 댓글 알림 설정
     point = models.BooleanField(default=True)       # 포인트 알림 설정
