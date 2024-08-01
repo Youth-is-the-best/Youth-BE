@@ -321,7 +321,7 @@ class BingoRecsAPIView(APIView):
                 user_type = request.user.type_result_id
                 recs = ProvidedBingoItem.objects.filter(type_id = user_type)
             except:
-                return Response({"error": "유형테스트를 완료하지 않은 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "유형테스트를 완료하지 않은 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST) #실제로는 유형테스트 하지 않은 사용자도 이 조건에서 걸러지진 않는다.
 
         elif param_value in ['squirrel', 'rabbit', 'panda', 'beaver', 'eagle', 'bear', 'dolphin']:
             recs = ProvidedBingoItem.objects.filter(type__user_type = param_value.upper())
