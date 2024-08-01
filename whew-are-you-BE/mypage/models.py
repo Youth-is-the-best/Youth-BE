@@ -4,10 +4,10 @@ from review_information.models import Review, Information
 
 # 알림창 모델
 class News(models.Model):
-    user = models.OneToOneField(CustomUser)     # 사용자
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)     # 사용자
     created_at = models.DateTimeField(auto_now_add=True)        # 알림 생성 시간
     created_at_day = models.DateTimeField(auto_now_add=True)        # 알림 생성 날짜
-    
+
     heart = models.BooleanField(default=True)       # 공감 알림 설정
     comment = models.BooleanField(default=True)     # 댓글 알림 설정
     point = models.BooleanField(default=True)       # 포인트 알림 설정
@@ -24,5 +24,5 @@ class News(models.Model):
     small_content = models.TextField(blank=True, null=True)     # 세부 내용
     is_clicked = models.BooleanField(default=False)     # 클릭된 알림인지
 
-    review = models.ForeignKey(Review, blank=True, null=True, related_name='news')       # 알림에 연결된 후기글
-    information = models.ForeignKey(Information, blank=True, null=True, related_name='news')         # 알림에 연결된 정보글
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, blank=True, null=True, related_name='news')       # 알림에 연결된 후기글
+    information = models.ForeignKey(Information, on_delete=models.CASCADE, blank=True, null=True, related_name='news')         # 알림에 연결된 정보글

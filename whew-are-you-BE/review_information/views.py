@@ -13,6 +13,7 @@ from rest_framework import filters
 from django.db.models import Q
 from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
 from bingo.models import ProvidedBingoItem, Notice
+from mypage.models import News
 
 
 # 모든 정보글 뷰
