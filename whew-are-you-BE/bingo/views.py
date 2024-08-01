@@ -12,6 +12,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
 from review_information.serializers import InformationGETSerializer, ReviewGETSerializer
+from django.utils import timezone
+from datetime import timedelta
 
 
 # 빙고 저장 & 불러오기
@@ -448,3 +450,72 @@ class NoticeDetailAPIView(APIView):
         }
 
         return Response(json_data, status=status.HTTP_200_OK)
+    
+
+# 디데이 뷰
+class DdayAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        user = request.user
+        
+        # 현재 날짜
+        current_date = timezone.now().date()
+        
+        try:
+            dday = Dday.objects.get(user=user)
+        except Dday.DoesNotExist:
+            dday = Dday.objects.create(user=user)
+
+        rest_dday = None
+        return_dday = None
+
+        if dday.rest_school:
+            rest_school = dday.rest_school
+            rest_dday = (current_date - rest_school).days
+        if dday.return_school:
+            return_school = dday.return_school
+            return_dday = (current_date - return_school).days
+        
+        rest_dday_display = "휴학 D-?"
+        return_dday_display = "복학 D-?"
+
+        if rest_dday:
+            if rest_dday < 0:       # 휴학 시점이 현재 시점보다 늦음
+                rest_dday_display = "휴학 D" + str(rest_dday)
+            elif rest_dday > 0:     # 휴학 시점이 현재보다 이름
+                rest_dday_display = "휴학 D+" + str(rest_dday)
+            else:                   # 휴학 시점 당일
+                rest_dday_display = "휴학 D-day"
+        if return_dday:
+            if return_dday < 0:         # 복학 시점이 현재 시점보다 늦음
+                return_dday_display = "복학 D" + str(return_dday)
+            elif rest_dday > 0:         # 복학 시점이 현재 시점보다 이름
+                return_dday_display = "복학 D+" + str(return_dday)
+            else:                       # 복학 시점 당일
+                return_dday_display = "복학 D-day"
+
+        serializer = DdaySerializer(dday)
+        return Response({
+            "dday_date": serializer.data,
+            "display": {
+                "rest_dday_display": rest_dday_display,
+                "return_dday_display": return_dday_display
+            }
+        }, status=status.HTTP_200_OK)
+    
+    def put(self, request):
+        user = request.user
+
+        try:
+            dday = Dday.objects.get(user=user)
+        except Dday.DoesNotExist:
+            return Response({"error": "사용자의 디데이 객체가 존재하지 않습니다. 먼저 GET 요청을 보내주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # DdaySerializer를 사용하여 D-day 객체 업데이트
+        serializer = DdaySerializer(dday, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "디데이 설정에 실패하였습니다. 요청 양식을 다시 확인해주세요."}, status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice
+from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice, Dday
 from review_information.models import ReviewImage, Review
 from rest_framework import status
 from rest_framework.response import Response
@@ -141,3 +141,11 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
         validated_data['images'] = images
         
         return review
+    
+
+# 디데이 시리얼라이저
+class DdaySerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Dday
+        fields = ['rest_school', 'return_school']
