@@ -537,3 +537,30 @@ class DdayAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"error": "디데이 설정에 실패하였습니다. 요청 양식을 다시 확인해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ToDoAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, todo_id, *args, **kwargs):
+        try:
+            todo = ToDo.objects.get(pk=todo_id)
+        except:
+            return Response({"error": "요청한 투두가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+            
+        dest_state = request.data.get('is_completed')
+        print(dest_state, type(dest_state))
+        if dest_state is True:
+            if todo.is_completed:
+                return Response({"error": "이미 완료처리된 투두입니다."}, status=status.HTTP_202_ACCEPTED)
+            else:
+                todo.is_completed = True
+                todo.save()
+                return Response({"success": "정상적으로 완료처리 되었습니다."}, status=status.HTTP_200_OK)
+            
+        else:
+            if not todo.is_completed:
+                return Response({"error": "이미 미완료 처리된 투두입니다."}, status=status.HTTP_202_ACCEPTED)
+            else:
+                todo.is_completed = False
+                todo.save()
+                return Response({"success": "정상적으로 미완료 처리 되었습니다."}, status=status.HTTP_200_OK)
