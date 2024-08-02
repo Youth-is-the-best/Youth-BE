@@ -83,3 +83,10 @@ class Notice(models.Model):
     likes = models.ManyToManyField(CustomUser, related_name='like_notice', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
     image = models.ImageField(blank=True, null=True)
+
+
+# 디데이 모델
+class Dday(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='dday')
+    rest_school = models.DateField(blank=True, null=True)       # 휴학 날짜
+    return_school = models.DateField(blank=True, null=True)     # 복학 날짜

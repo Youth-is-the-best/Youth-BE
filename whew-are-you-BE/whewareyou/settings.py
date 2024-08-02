@@ -62,6 +62,7 @@ PROJECT_APPS = [
     'bingo',
     'review_information',
     'portfolio',
+    'mypage',
 ]
 
 THIRD_PARTY_APPS = [

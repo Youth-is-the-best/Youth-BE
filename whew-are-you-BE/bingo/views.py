@@ -13,6 +13,8 @@ from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from review_information.serializers import InformationGETSerializer, ReviewGETSerializer
+from django.utils import timezone
+from datetime import timedelta
 
 
 # 빙고 저장 & 불러오기
@@ -308,6 +310,13 @@ class BingoReviewAPIView(APIView):
         serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
         
         if serializer.is_valid():
+            active_bingo = Bingo.objects.get(user=request.user, is_active=True)
+            bingo_space = BingoSpace.objects.get(bingo_id=active_bingo, location=request.data.get('space_location'))
+            todos = ToDo.objects.filter(bingo_space_id=bingo_space)
+            for todo in todos: 
+                if not todo.is_completed:
+                    return Response({"error": "투두 항목이 모두 완료되어야 후기글 작성이 가능합니다.", "short_code": "todo_remaining"}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
@@ -317,14 +326,21 @@ class BingoRecsAPIView(APIView):
     def get(self, request, *args, **kwargs):
         param_value = request.GET.get('type', None)
 
-        if param_value not in ['squirrel', 'rabbit', 'panda', 'beaver', 'eagle', 'bear', 'dolphin']:
-            return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        if param_value is None:
+            try: 
+                user_type = request.user.type_result_id
+                recs = ProvidedBingoItem.objects.filter(type_id = user_type)
+            except: #로그인하지 않은 사용자도 여기서 걸러짐
+                return Response({"error": "유형테스트를 완료하지 않은 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST) #실제로는 유형테스트 하지 않은 사용자도 이 조건에서 걸러지진 않는다.
+
+        elif param_value in ['squirrel', 'rabbit', 'panda', 'beaver', 'eagle', 'bear', 'dolphin']:
+            recs = ProvidedBingoItem.objects.filter(type__user_type = param_value.upper())
         
         else:
-            #일단 대강 일케 추천
-            recs = ProvidedBingoItem.objects.filter(type__user_type = param_value.upper())
-            serializer = ProvidedBingoItemSerializer(recs, many=True)
-            serializer_data = serializer.data
+            return Response({"error": "type 쿼리 필드가 잘못되었습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        serializer = ProvidedBingoItemSerializer(recs, many=True)
+        serializer_data = serializer.data
 
         return Response({"success": "유형별 추천 항목", "data": serializer_data}, status=status.HTTP_200_OK)
 
@@ -361,12 +377,20 @@ class NoticeAPIView(APIView):
 
         large_category = request.query_params.get('large_category', None)
         search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
 
         if large_category:
             provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
 
         if search_query:
             provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
 
         # 반환할 데이터를 담음
         data = []
@@ -444,3 +468,99 @@ class NoticeDetailAPIView(APIView):
         }
 
         return Response(json_data, status=status.HTTP_200_OK)
+    
+
+# 디데이 뷰
+class DdayAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        user = request.user
+        
+        # 현재 날짜
+        current_date = timezone.now().date()
+        
+        try:
+            dday = Dday.objects.get(user=user)
+        except Dday.DoesNotExist:
+            dday = Dday.objects.create(user=user)
+
+        rest_dday = None
+        return_dday = None
+
+        if dday.rest_school:
+            rest_school = dday.rest_school
+            rest_dday = (current_date - rest_school).days
+        if dday.return_school:
+            return_school = dday.return_school
+            return_dday = (current_date - return_school).days
+        
+        rest_dday_display = "휴학 D-?"
+        return_dday_display = "복학 D-?"
+
+        if rest_dday:
+            if rest_dday < 0:       # 휴학 시점이 현재 시점보다 늦음
+                rest_dday_display = "휴학 D" + str(rest_dday)
+            elif rest_dday > 0:     # 휴학 시점이 현재보다 이름
+                rest_dday_display = "휴학 D+" + str(rest_dday)
+            else:                   # 휴학 시점 당일
+                rest_dday_display = "휴학 D-day"
+        if return_dday:
+            if return_dday < 0:         # 복학 시점이 현재 시점보다 늦음
+                return_dday_display = "복학 D" + str(return_dday)
+            elif rest_dday > 0:         # 복학 시점이 현재 시점보다 이름
+                return_dday_display = "복학 D+" + str(return_dday)
+            else:                       # 복학 시점 당일
+                return_dday_display = "복학 D-day"
+
+        serializer = DdaySerializer(dday)
+        return Response({
+            "dday_date": serializer.data,
+            "display": {
+                "rest_dday_display": rest_dday_display,
+                "return_dday_display": return_dday_display
+            }
+        }, status=status.HTTP_200_OK)
+    
+    def put(self, request):
+        user = request.user
+
+        try:
+            dday = Dday.objects.get(user=user)
+        except Dday.DoesNotExist:
+            return Response({"error": "사용자의 디데이 객체가 존재하지 않습니다. 먼저 GET 요청을 보내주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # DdaySerializer를 사용하여 D-day 객체 업데이트
+        serializer = DdaySerializer(dday, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "디데이 설정에 실패하였습니다. 요청 양식을 다시 확인해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ToDoAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, todo_id, *args, **kwargs):
+        try:
+            todo = ToDo.objects.get(pk=todo_id)
+        except:
+            return Response({"error": "요청한 투두가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+            
+        dest_state = request.data.get('is_completed')
+        print(dest_state, type(dest_state))
+        if dest_state is True:
+            if todo.is_completed:
+                return Response({"error": "이미 완료처리된 투두입니다."}, status=status.HTTP_202_ACCEPTED)
+            else:
+                todo.is_completed = True
+                todo.save()
+                return Response({"success": "정상적으로 완료처리 되었습니다."}, status=status.HTTP_200_OK)
+            
+        else:
+            if not todo.is_completed:
+                return Response({"error": "이미 미완료 처리된 투두입니다."}, status=status.HTTP_202_ACCEPTED)
+            else:
+                todo.is_completed = False
+                todo.save()
+                return Response({"success": "정상적으로 미완료 처리 되었습니다."}, status=status.HTTP_200_OK)

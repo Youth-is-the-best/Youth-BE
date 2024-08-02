@@ -8,10 +8,12 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 import json
+from django.db.models import Count
 from rest_framework import filters
 from django.db.models import Q
 from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
 from bingo.models import ProvidedBingoItem, Notice
+from mypage.models import News
 
 
 # 모든 정보글 뷰
@@ -72,6 +74,9 @@ class ReviewAPIView(APIView):
     def get(self, request, *args, **kwargs):
         large_category = request.query_params.get('large_category', None)
         search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
+
 
         if large_category:
             reviews = Review.objects.filter(large_category=large_category)
@@ -80,6 +85,12 @@ class ReviewAPIView(APIView):
 
         if search_query:
             reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
     
         serializer = ReviewGETSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -133,9 +144,19 @@ class ReviewLikeAPIView(APIView):
         review = get_object_or_404(Review, id=id)
         if request.user in review.likes.all():
             review.likes.remove(request.user)
+
             return Response({'message': '좋아요가 취소되었습니다.'})
+        
         else:
             review.likes.add(request.user)
+
+            # 후기글의 작성자에게 알림을 생성
+            if request.user != review.user:
+                who = request.user.username
+                where = review.title
+                content = who + '님이 [' + where + '] 글에 좋아요를 눌렀습니다.' 
+                news = News.objects.create(user=review.user, category='HEART', who=who, where=where, content=content, review=review)
+
             return Response({'message': '좋아요가 반영되었습니다.'})
         
 
@@ -167,6 +188,15 @@ class CommentAPIView(APIView):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(author=request.user, review=review)
+
+            # 후기글의 작성자에게 알림을 생성
+            if request.user != review.user:
+                who = request.user.username
+                where = review.title
+                content = who + '님이 [' + where + '] 글에 댓글을 남겼습니다.' 
+                small_content = serializer.data['content']
+                news = News.objects.create(user=review.user, category='COMMENT', who=who, where=where, content=content, small_content=small_content, review=review)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -203,6 +233,19 @@ class CommentDetailAPIView(APIView):
 
             response_data.append(json)
         return Response(response_data)
+
+        
+class FetchRelatedReviewsAPIView(APIView):
+
+    def get(self, request, bingo_item_id, *args, **kwargs):
+        bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
+        related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item)
+        annotated_reviews = related_reviews.annotate(num_likes=Count('likes'))
+        top_reviews = annotated_reviews.order_by('-num_likes') 
+        top_reviews = top_reviews[:3]       
+        related_serializer = ReviewGETSerializer(top_reviews, many=True).data
+
+        return Response({"success": "연관 후기 3개", "data": related_serializer}, status=status.HTTP_200_OK)
     
 
 # 공고, 후기 전체 검색 뷰
@@ -217,9 +260,17 @@ class SearchAPIView(APIView):
 
         large_category = request.query_params.get('large_category', None)
         search_query = request.query_params.get('search', None)
+        area = request.query_params.get('area', None)
+        field = request.query_params.get('field', None)
 
         if large_category:
             provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
+
+        if area:
+            provided_bingo_items = provided_bingo_items.filter(area=area)
+
+        if field:
+            provided_bingo_items = provided_bingo_items.filter(field=field)
 
         if search_query:
             provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
@@ -248,10 +299,17 @@ class SearchAPIView(APIView):
 
         if search_query:
             reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+
+        if area:
+            reviews = reviews.filter(area=area)
+
+        if field:
+            reviews = reviews.filter(field=field)
     
         serializer = ReviewGETSerializer(reviews, many=True)
 
         response['review'] = serializer.data
 
         return Response(response, status=status.HTTP_200_OK)
+
 

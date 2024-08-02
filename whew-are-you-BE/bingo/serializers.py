@@ -1,22 +1,47 @@
 from rest_framework import serializers
-from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice
+from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice, Dday
 from review_information.models import ReviewImage, Review
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from datetime import datetime
+
+class CustomDateField(serializers.DateField):
+    def to_representation(self, value):
+        # 출력 형식 설정
+        return value.strftime('%Y.%m.%d')
+
+    def to_internal_value(self, data):
+        # 입력 형식 설정
+        for date_format in ('%Y.%m.%d', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(data, date_format).date()
+            except ValueError:
+                continue
+        raise serializers.ValidationError("Invalid date format. Use 'YYYY.MM.DD' or 'YYYY-MM-DD'.")
+    
 
 class BingoSpaceSerializer(serializers.ModelSerializer):
+    start_date = CustomDateField()
+    end_date = CustomDateField()
+    date = CustomDateField()
+
     class Meta: 
         model = BingoSpace
         fields = "__all__"
 
 class CustomBingoItemSerializer(serializers.ModelSerializer):
+    start_date = CustomDateField()
+    end_date = CustomDateField()
+
     class Meta:
         model = CustomBingoItem
         fields = "__all__"
 
 class ProvidedBingoItemSerializer(serializers.ModelSerializer):
     large_category_display = serializers.SerializerMethodField()
+    start_date = CustomDateField()
+    end_date = CustomDateField()
 
     class Meta:
         model = ProvidedBingoItem
@@ -141,3 +166,13 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
         validated_data['images'] = images
         
         return review
+    
+
+# 디데이 시리얼라이저
+class DdaySerializer(serializers.ModelSerializer):
+    rest_school = CustomDateField()
+    return_school = CustomDateField()
+    
+    class Meta:
+        model = Dday
+        fields = ['rest_school', 'return_school']

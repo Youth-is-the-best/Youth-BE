@@ -2,6 +2,23 @@ from rest_framework import serializers
 from .models import Information, InformationImage, Review, ReviewImage, DetailPlan, Comment
 from rest_framework import status
 from rest_framework.response import Response
+from datetime import datetime
+
+
+# 커스텀 데이트 필드
+class CustomDateField(serializers.DateField):
+    def to_representation(self, value):
+        # 출력 형식 설정
+        return value.strftime('%Y.%m.%d')
+
+    def to_internal_value(self, data):
+        # 입력 형식 설정
+        for date_format in ('%Y.%m.%d', '%Y-%m-%d'):
+            try:
+                return datetime.strptime(data, date_format).date()
+            except ValueError:
+                continue
+        raise serializers.ValidationError("Invalid date format. Use 'YYYY.MM.DD' or 'YYYY-MM-DD'.")
 
 
 # 정보글 이미지 시리얼라이저
@@ -82,6 +99,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     
     detailplans = DetailPlanSerializer(many=True)
     id = serializers.ReadOnlyField()
+    start_date = CustomDateField()
+    end_date = CustomDateField()
+    date = CustomDateField()
 
     class Meta:
         model = Review
@@ -179,6 +199,9 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='user.username', read_only=True)
     profile = serializers.CharField(source='user.type_result.user_type', read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
+    start_date = CustomDateField()
+    end_date = CustomDateField()
+    date = CustomDateField()
 
     class Meta:
         model = Review
@@ -195,7 +218,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     author_name = serializers.CharField(source='author.username', read_only=True)
     replies = serializers.SerializerMethodField()
-    user_type = serializers.CharField(source='author.type_result.user_type')
+    user_type = serializers.CharField(source='author.type_result.user_type', read_only=True)
 
     class Meta:
         model = Comment
