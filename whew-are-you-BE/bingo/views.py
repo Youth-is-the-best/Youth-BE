@@ -31,7 +31,6 @@ class BingoAPIView(APIView):
         end_date = request.data.get('end_date')
         bingo_obj = request.data.get('bingo_obj')
 
-        data = copy(request.data)
         if start_date:
             try:
                 # 'YYYY.MM.DD' 형식을 'YYYY-MM-DD'로 변환
