@@ -9,4 +9,5 @@ urlpatterns = [
     path('news/option/hue/', HueOptionAPIView.as_view()),
     path('news/option/point/', PointOptionAPIView.as_view()),
     path('news/option/not-read/', ReadOptionAPIView.as_view()),
+    path('news/<int:id>/', BaroAPIView.as_view()),
 ]

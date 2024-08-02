@@ -162,3 +162,21 @@ class HueOptionAPIView(APIView):
             option.hue = True
             option.save()
             return Response({"message": "휴알유 정보글 알림이 설정되었습니다."})
+        
+
+# 알림 누르면 바로 가기 뷰
+class BaroAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id, *args, **kwargs):
+        user = request.user
+        try:
+            news = News.objects.get(id=id)
+        except NewsOption.DoesNotExist:
+            return Response({"error": "해당하는 id의 알림이 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        news.is_clicked = True
+        news.save()
+        return Response({
+            "review": news.review.id
+        })
