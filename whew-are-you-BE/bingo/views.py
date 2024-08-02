@@ -15,6 +15,7 @@ from django.db.models import Q
 from review_information.serializers import InformationGETSerializer, ReviewGETSerializer
 from django.utils import timezone
 from datetime import timedelta
+from copy import copy
 
 
 # 빙고 저장 & 불러오기
@@ -29,6 +30,23 @@ class BingoAPIView(APIView):
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
         bingo_obj = request.data.get('bingo_obj')
+
+        data = copy(request.data)
+        if start_date:
+            try:
+                # 'YYYY.MM.DD' 형식을 'YYYY-MM-DD'로 변환
+                date_obj = datetime.strptime(start_date, '%Y.%m.%d')
+                start_date = date_obj.strftime('%Y-%m-%d')
+            except ValueError:
+                return Response({"date_field": "Date format should be YYYY.MM.DD"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if end_date:
+            try:
+                # 'YYYY.MM.DD' 형식을 'YYYY-MM-DD'로 변환
+                date_obj = datetime.strptime(end_date, '%Y.%m.%d')
+                end_date = date_obj.strftime('%Y-%m-%d')
+            except ValueError:
+                return Response({"date_field": "Date format should be YYYY.MM.DD"}, status=status.HTTP_400_BAD_REQUEST)
 
         print(f"Request data: {request.data}")
 
