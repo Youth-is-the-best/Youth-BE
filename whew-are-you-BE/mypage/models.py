@@ -27,7 +27,9 @@ class News(models.Model):
 
 # 설정 모델
 class NewsOption(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     heart = models.BooleanField(default=True)       # 공감 알림 설정
     comment = models.BooleanField(default=True)     # 댓글 알림 설정
     point = models.BooleanField(default=True)       # 포인트 알림 설정
     hue = models.BooleanField(default=True)         # 휴알유 포스트 알림 추천
+    not_read = models.BooleanField(default=True)    # 안 읽음 기능 설정
