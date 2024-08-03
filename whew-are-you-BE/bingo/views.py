@@ -466,24 +466,15 @@ class NoticeDetailAPIView(APIView):
     def get(self, request, id, *args, **kwargs):
         try:
             # 공고인 ProvidedBingoItem을 가져오기
-            item = ProvidedBingoItem.objects.get(id=id)
-        except ProvidedBingoItem.DoesNotExist:
+            notice = Notice.objects.get(id=id)
+        except Notice.DoesNotExist:
             return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
 
-        try:
-            notice_data = Notice.objects.get(provided_bingo_item=item)
-        except Notice.DoesNotExist:
-            return Response({"error": "요청한 공고 정보가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+        notice_serializer = NoticeSerializer(notice, context={'request': request})
+        notice = copy(notice_serializer.data)
 
-        item_serializer = ProvidedBingoItemSerializer(item)
-        notice_serializer = NoticeSerializer(notice_data)
 
-        json_data = {
-            'bingo_item': item_serializer.data,
-            'notice_information': notice_serializer.data
-        }
-
-        return Response(json_data, status=status.HTTP_200_OK)
+        return Response(notice, status=status.HTTP_200_OK)
     
 
 # 디데이 뷰
