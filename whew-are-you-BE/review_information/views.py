@@ -14,6 +14,7 @@ from django.db.models import Q
 from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
 from bingo.models import ProvidedBingoItem, Notice
 from mypage.models import News
+from copy import copy
 
 
 # 모든 정보글 뷰
@@ -279,15 +280,14 @@ class SearchAPIView(APIView):
         data = []
         
         for item in provided_bingo_items:
-            item_serializer = ProvidedBingoItemSerializer(item)
-            notice_data = Notice.objects.get(provided_bingo_item=item)
-            notice_serializer = NoticeSerializer(notice_data)
-
-            json_data = {}
-            json_data['bingo_item'] = item_serializer.data
-            json_data['notice_information'] = notice_serializer.data
-
-            data.append(json_data)
+            try:
+                notice_data = Notice.objects.get(provided_bingo_item=item)
+                notice_serializer = NoticeSerializer(notice_data, context={'request': request})
+                notice = copy(notice_serializer.data)
+                data.append(notice)
+            except Notice.DoesNotExist:
+                # Notice가 존재하지 않을 경우 처리
+                continue
 
         # 공고 글 데이터 담기
         response['notice'] = data
