@@ -434,8 +434,8 @@ class NoticeLikeAPIView(APIView):
 
     def get(self, request, id, *args, **kwargs):
         try:
-            notice = Notice.objects.get()
-        except BingoSpace.DoesNotExist:
+            notice = Notice.objects.get(id=id)
+        except Notice.DoesNotExist:
             return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         if request.user in notice.likes.all():
@@ -452,8 +452,8 @@ class NoticeStorageAPIView(APIView):
 
     def get(self, request, id, *args, **kwargs):
         try:
-            notice = Notice.objects.get()
-        except BingoSpace.DoesNotExist:
+            notice = Notice.objects.get(id=id)
+        except Notice.DoesNotExist:
             return Response({"error": "요청한 공고가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         if request.user in notice.storage.all():
