@@ -58,6 +58,8 @@ class ToDoSerializer(serializers.ModelSerializer):
 
 # 공고 시리얼라이저
 class NoticeSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Notice
         fields = '__all__'
@@ -70,6 +72,12 @@ class NoticeSerializer(serializers.ModelSerializer):
             if key != 'id':
                 rep[key] = value
         return rep
+    
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
 
 # 후기글 작성 시리얼라이저
