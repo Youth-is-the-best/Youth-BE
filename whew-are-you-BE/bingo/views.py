@@ -399,6 +399,8 @@ class NoticeAPIView(APIView):
         search_query = request.query_params.get('search', None)
         area = request.query_params.get('area', None)
         field = request.query_params.get('field', None)
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
         if large_category:
             provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
@@ -407,10 +409,17 @@ class NoticeAPIView(APIView):
             provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
 
         if area:
-            reviews = reviews.filter(area=area)
+            provided_bingo_items = provided_bingo_items.filter(area=area)
 
         if field:
-            reviews = reviews.filter(field=field)
+            provided_bingo_items = provided_bingo_items.filter(field=field)
+
+        if start_date and end_date:
+            provided_bingo_items = provided_bingo_items.filter(Q(start_date__lte=end_date) & Q(end_date__gte=start_date))
+        elif start_date:
+            provided_bingo_items = provided_bingo_items.filter(Q(start_date__gte=start_date))
+        elif end_date:
+            provided_bingo_items = provided_bingo_items.filter(Q(end_date__lte=end_date))
 
         # 반환할 데이터를 담음
         data = []

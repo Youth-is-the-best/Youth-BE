@@ -77,6 +77,8 @@ class ReviewAPIView(APIView):
         search_query = request.query_params.get('search', None)
         area = request.query_params.get('area', None)
         field = request.query_params.get('field', None)
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
 
         if large_category:
@@ -92,6 +94,13 @@ class ReviewAPIView(APIView):
 
         if field:
             reviews = reviews.filter(field=field)
+
+        if start_date and end_date:
+            reviews = reviews.filter(Q(start_date__lte=end_date) & Q(end_date__gte=start_date))
+        elif start_date:
+            reviews = reviews.filter(Q(start_date__gte=start_date))
+        elif end_date:
+            reviews = reviews.filter(Q(end_date__lte=end_date))
     
         serializer = ReviewGETSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -263,6 +272,8 @@ class SearchAPIView(APIView):
         search_query = request.query_params.get('search', None)
         area = request.query_params.get('area', None)
         field = request.query_params.get('field', None)
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
 
         if large_category:
             provided_bingo_items = provided_bingo_items.filter(large_category=large_category)
@@ -275,6 +286,13 @@ class SearchAPIView(APIView):
 
         if search_query:
             provided_bingo_items = provided_bingo_items.filter(Q(title__icontains=search_query) | Q(notice__content__icontains=search_query))
+
+        if start_date and end_date:
+            provided_bingo_items = provided_bingo_items.filter(Q(start_date__lte=end_date) & Q(end_date__gte=start_date))
+        elif start_date:
+            provided_bingo_items = provided_bingo_items.filter(Q(start_date__gte=start_date))
+        elif end_date:
+            provided_bingo_items = provided_bingo_items.filter(Q(end_date__lte=end_date))
 
         # 반환할 데이터를 담음
         data = []
@@ -305,6 +323,13 @@ class SearchAPIView(APIView):
 
         if field:
             reviews = reviews.filter(field=field)
+        
+        if start_date and end_date:
+            reviews = reviews.filter(Q(start_date__lte=end_date) & Q(end_date__gte=start_date))
+        elif start_date:
+            reviews = reviews.filter(Q(start_date__gte=start_date))
+        elif end_date:
+            reviews = reviews.filter(Q(end_date__lte=end_date))
     
         serializer = ReviewGETSerializer(reviews, many=True)
 
