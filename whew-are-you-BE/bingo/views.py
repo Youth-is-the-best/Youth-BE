@@ -330,6 +330,7 @@ class BingoRecsAPIView(APIView):
             try: 
                 user_type = request.user.type_result_id
                 recs = ProvidedBingoItem.objects.filter(type_id = user_type)
+                extra_recs = ProvidedBingoItem.objects.exclude(type_id = user_type)[:10]
             except: #로그인하지 않은 사용자도 여기서 걸러짐
                 return Response({"error": "유형테스트를 완료하지 않은 사용자입니다."}, status=status.HTTP_400_BAD_REQUEST) #실제로는 유형테스트 하지 않은 사용자도 이 조건에서 걸러지진 않는다.
 
@@ -341,14 +342,16 @@ class BingoRecsAPIView(APIView):
             
         serializer = ProvidedBingoItemSerializer(recs, many=True)
         serializer_data = serializer.data
+        extras_serializer = ProvidedBingoItemSerializer(extra_recs, many=True)
+        extras_serializer_data = extras_serializer.data
 
-        return Response({"success": "유형별 추천 항목", "data": serializer_data}, status=status.HTTP_200_OK)
+        return Response({"success": "유형별 추천 항목", "data": serializer_data+extras_serializer_data}, status=status.HTTP_200_OK)
 
 class BingoUpcomingAPIView(generics.ListAPIView):
     queryset = ProvidedBingoItem.objects.filter(app_due__gte=timezone.now()).order_by('app_due')
     serializer_class = ProvidedBingoItemSerializer
     pagination_class = PageNumberPagination
-    pagination_class.page_size = 12  # Limit to 10 results per page
+    pagination_class.page_size = 50
 
 class BingoSavedAPIView(APIView):
     permission_classes = [IsAuthenticated]
