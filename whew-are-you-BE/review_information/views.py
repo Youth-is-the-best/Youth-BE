@@ -331,7 +331,7 @@ class SearchAPIView(APIView):
         elif end_date:
             reviews = reviews.filter(Q(end_date__lte=end_date))
     
-        serializer = ReviewGETSerializer(reviews, many=True)
+        serializer = ReviewGETSerializer(reviews, many=True, context={'request': request})
 
         response['review'] = serializer.data
 
