@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice, Dday
+from .models import Bingo, BingoSpace, CustomBingoItem, ProvidedBingoItem, ToDo, Notice, Dday, Comment
 from review_information.models import ReviewImage, Review
 from rest_framework import status
 from rest_framework.response import Response
@@ -42,6 +42,7 @@ class ProvidedBingoItemSerializer(serializers.ModelSerializer):
     large_category_display = serializers.SerializerMethodField()
     start_date = CustomDateField()
     end_date = CustomDateField()
+    author = serializers.CharField(source='author.username', read_only=True)
 
     class Meta:
         model = ProvidedBingoItem
@@ -59,6 +60,8 @@ class ToDoSerializer(serializers.ModelSerializer):
 # 공고 시리얼라이저
 class NoticeSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    likes_count = serializers.IntegerField(read_only=True)
+    comments_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Notice
@@ -190,3 +193,21 @@ class DdaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Dday
         fields = ['rest_school', 'return_school']
+
+
+# 공고 댓글 시리얼라이저
+class CommentSerializer(serializers.ModelSerializer):
+
+    author_name = serializers.CharField(source='author.username', read_only=True)
+    replies = serializers.SerializerMethodField()
+    user_type = serializers.CharField(source='author.type_result.user_type', read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type']
+        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type']
+
+    def get_replies(self, obj):
+        if obj.replies.exists():
+            return CommentSerializer(obj.replies.all(), many=True).data
+        return []

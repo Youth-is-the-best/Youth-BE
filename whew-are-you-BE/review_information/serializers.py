@@ -202,12 +202,14 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     start_date = CustomDateField()
     end_date = CustomDateField()
     date = CustomDateField()
+    likes_count = serializers.IntegerField(read_only=True)
+    comments_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile', 'storage']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'storage']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
