@@ -83,6 +83,7 @@ class Notice(models.Model):
     likes = models.ManyToManyField(CustomUser, related_name='like_notice', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
     image = models.ImageField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def likes_count(self):
         return self.likes.count()
