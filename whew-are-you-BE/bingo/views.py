@@ -322,6 +322,7 @@ class BingoObjAPIView(APIView):
 # 빙고 인증용 후기글 뷰
 class BingoReviewAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
