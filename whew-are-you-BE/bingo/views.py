@@ -174,8 +174,8 @@ class BingoAPIView(APIView):
         return Response({
             "username": user.username,
             "usertype": user_type,
-            "start_date": bingo.start_date,
-            "end_date": bingo.end_date,
+            "start_date": bingo.start_date.strftime('%Y.%m.%d'),
+            "end_date": bingo.end_date.strftime('%Y.%m.%d'),
             "size": bingo.size,
             "bingo_obj": bingo_obj
         }, status=status.HTTP_200_OK)
