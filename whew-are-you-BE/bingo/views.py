@@ -437,6 +437,25 @@ class NoticeAPIView(APIView):
         return Response(data, status=status.HTTP_200_OK)
     
 
+# 공고 댓글
+class CommentAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, notice_id, *args, **kwargs):
+        comments = Comment.objects.filter(notice_id=notice_id, parent__isnull=True)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, notice_id, *args, **kwargs):
+        notice = Notice.objects.get(id=notice_id)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user, notice=notice)
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 # 좋아요
 class NoticeLikeAPIView(APIView):
     permission_classes = [IsAuthenticated]

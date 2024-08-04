@@ -6,4 +6,5 @@ urlpatterns = [
     path('likes/<int:id>/', NoticeLikeAPIView.as_view()),
     path('storages/<int:id>/', NoticeStorageAPIView.as_view()),
     path('<int:id>/', NoticeDetailAPIView.as_view()),
+    path('<int:notice_id>/comments/', CommentAPIView.as_view())
 ]
