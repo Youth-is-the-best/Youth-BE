@@ -209,10 +209,19 @@ class ReviewGETSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'storage']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
+    
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        request = self.context.get('request')
+        if request.user.id in rep['storage']:
+            rep['saved'] = True
+        else:
+            rep['saved'] = False
+        return rep
         
 
 # 댓글 시리얼라이저

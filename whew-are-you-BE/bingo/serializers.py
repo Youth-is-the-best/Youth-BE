@@ -69,11 +69,17 @@ class NoticeSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
+        request = self.context.get('request')
+
         provided_origin = instance.provided_bingo_item
         provided_origin_serializer = ProvidedBingoItemSerializer(provided_origin).data 
         for key, value in provided_origin_serializer.items():
             if key != 'id':
                 rep[key] = value
+        if request.user.id in rep['storage']:
+            rep['saved'] = True
+        else:
+            rep['saved'] = False
         return rep
     
     def get_image_url(self, obj):
