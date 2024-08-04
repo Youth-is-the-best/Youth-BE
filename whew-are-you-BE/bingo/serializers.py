@@ -73,7 +73,7 @@ class NoticeSerializer(serializers.ModelSerializer):
         for key, value in provided_origin_serializer.items():
             if key != 'id':
                 rep[key] = value
-        if request.user.id in rep['storage']:
+        if request and request.user.id in rep['storage']:
             rep['saved'] = True
         else:
             rep['saved'] = False
