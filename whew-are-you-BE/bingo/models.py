@@ -84,6 +84,9 @@ class Notice(models.Model):
     storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
     image = models.ImageField(blank=True, null=True)
 
+    def likes_count(self):
+        return self.likes.count()
+
 
 # 디데이 모델
 class Dday(models.Model):

@@ -112,6 +112,12 @@ class Review(models.Model):
     likes = models.ManyToManyField(CustomUser, related_name='like_review', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_review', blank=True)
 
+    def likes_count(self):
+        return self.likes.count()
+    
+    def comments_count(self):
+        return self.comments.count()
+
 
 # 후기글 이미지
 class ReviewImage(models.Model):
