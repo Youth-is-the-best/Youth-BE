@@ -198,7 +198,7 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     author_id = serializers.IntegerField(source='user.id', read_only=True)
     author = serializers.CharField(source='user.username', read_only=True)
     profile = serializers.CharField(source='user.type_result.user_type', read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
+    created_at = serializers.DateField(read_only=True)
     start_date = CustomDateField()
     end_date = CustomDateField()
     date = CustomDateField()
