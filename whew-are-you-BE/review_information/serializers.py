@@ -101,13 +101,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     start_date = CustomDateField()
     end_date = CustomDateField()
-    date = CustomDateField()
+    date = CustomDateField(required=False)
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'detailplans', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure']
-
+    
     def create(self, validated_data):
         # 필수 항목들
         user = self.context['request'].user
