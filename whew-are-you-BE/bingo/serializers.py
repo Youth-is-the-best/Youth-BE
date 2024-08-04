@@ -42,6 +42,7 @@ class ProvidedBingoItemSerializer(serializers.ModelSerializer):
     large_category_display = serializers.SerializerMethodField()
     start_date = CustomDateField()
     end_date = CustomDateField()
+    author = serializers.CharField(source='author.username', read_only=True)
 
     class Meta:
         model = ProvidedBingoItem
@@ -59,6 +60,7 @@ class ToDoSerializer(serializers.ModelSerializer):
 # 공고 시리얼라이저
 class NoticeSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    likes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Notice
