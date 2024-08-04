@@ -221,7 +221,14 @@ class ReviewGETSerializer(serializers.ModelSerializer):
             return obj.likes.filter(id=request.user.id).exists()
         return False
 
-        
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.user.id in rep['storage']:
+            rep['saved'] = True
+        else:
+            rep['saved'] = False
+        return rep
 
 # 댓글 시리얼라이저
 class CommentSerializer(serializers.ModelSerializer):
