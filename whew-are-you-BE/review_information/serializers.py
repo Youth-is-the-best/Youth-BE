@@ -217,10 +217,14 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         rep = super().to_representation(instance)
         request = self.context.get('request')
-        if request and request.user.id in rep['storage']:
-            rep['saved'] = True
+        if request:
+            if request.user.id in rep['storage']:
+                rep['saved'] = True
+            if request.user.id in rep['likes']:
+                rep['liked'] = True
         else:
             rep['saved'] = False
+            rep['liked'] = False
         return rep
         
 
