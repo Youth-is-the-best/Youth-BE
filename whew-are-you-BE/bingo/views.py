@@ -16,6 +16,7 @@ from review_information.serializers import InformationGETSerializer, ReviewGETSe
 from django.utils import timezone
 from datetime import timedelta
 from copy import copy
+from django.core.exceptions import ObjectDoesNotExist
 
 
 # 빙고 저장 & 불러오기
@@ -325,21 +326,34 @@ class BingoReviewAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
+        serializer = ReviewPOSTSerializer(data=request.data, context={'request': request})
         
         if serializer.is_valid():
-            active_bingo = Bingo.objects.get(user=request.user, is_active=True)
-            bingo_space = BingoSpace.objects.get(bingo_id=active_bingo, location=request.data.get('space_location'))
+            try:
+                active_bingo = Bingo.objects.get(user=request.user, is_active=True)
+            except Bingo.DoesNotExist:
+                return Response({"error": "활성화된 빙고를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            
+            try:
+                bingo_space = BingoSpace.objects.get(bingo_id=active_bingo, location=request.data.get('space_location'))
+            except BingoSpace.DoesNotExist:
+                return Response({"error": "해당 위치의 빙고 공간을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            
             todos = ToDo.objects.filter(bingo_space_id=bingo_space)
-            for todo in todos: 
+            for todo in todos:
                 if not todo.is_completed:
                     return Response({"error": "투두 항목이 모두 완료되어야 후기글 작성이 가능합니다.", "short_code": "todo_remaining"}, status=status.HTTP_400_BAD_REQUEST)
-            #여기서 이미 인증용 후기글이 존재하면 500 Integrity Err말고 예외처리를 해주자
-            if bingo_space.review:
-                return Response({'error': "기작성된 인증용 후기글이 존재합니다."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                serializer.save(user=request.user)
+            
+            try:
+                if bingo_space.review:
+                    return Response({'error': "기작성된 인증용 후기글이 존재합니다."}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                # `review`가 존재하지 않을 경우 예외를 무시하고 후기글을 작성함
+                pass
+            
+            serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class BingoRecsAPIView(APIView):
