@@ -179,4 +179,4 @@ class Comment(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:  # 객체가 처음 생성될 때만 설정
             self.created_date = date.today()
-        super(Review, self).save(*args, **kwargs)
+        super(Comment, self).save(*args, **kwargs)
