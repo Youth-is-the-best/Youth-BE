@@ -34,10 +34,12 @@ class InformationImageSerializer(serializers.ModelSerializer):
 class InformationGETSerializer(serializers.ModelSerializer):
     information_id = serializers.IntegerField(source='id')
     images = InformationImageSerializer(many=True, read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    created_at = serializers.DateField(read_only=True)
 
     class Meta:
         model = Information
-        fields = ['information_id', 'title', 'content', 'large_category', 'images']
+        fields = ['information_id', 'title', 'content', 'large_category', 'images', 'username', 'created_at']
 
 
 # 정보글 POST 시리얼라이저
