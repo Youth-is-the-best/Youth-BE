@@ -50,6 +50,12 @@ class ProvidedBingoItemSerializer(serializers.ModelSerializer):
 
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
+    
+    def to_representation(self, instance):
+        rep =  super().to_representation(instance)
+        if instance.is_notice and instance.notice:
+            rep['notice_id'] = instance.notice.id
+        return rep
 
 class ToDoSerializer(serializers.ModelSerializer):
     class Meta:
