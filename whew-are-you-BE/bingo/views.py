@@ -334,10 +334,12 @@ class BingoReviewAPIView(APIView):
             for todo in todos: 
                 if not todo.is_completed:
                     return Response({"error": "투두 항목이 모두 완료되어야 후기글 작성이 가능합니다.", "short_code": "todo_remaining"}, status=status.HTTP_400_BAD_REQUEST)
-
-            serializer.save(user=request.user)
+            #여기서 이미 인증용 후기글이 존재하면 500 Integrity Err말고 예외처리를 해주자
+            if bingo_space.review:
+                return Response({'error': "기작성된 인증용 후기글이 존재합니다."}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class BingoRecsAPIView(APIView):
