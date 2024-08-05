@@ -41,6 +41,10 @@ class InformationGETSerializer(serializers.ModelSerializer):
         model = Information
         fields = ['information_id', 'title', 'content', 'large_category', 'images']
 
+    def to_representation(self, instance):
+        rep =  super().to_representation(instance)
+        rep['large_category_display'] = '휴알유' #휴알유 포스트이므로
+        return rep
 
 # 정보글 POST 시리얼라이저
 class InformationSerializer(serializers.ModelSerializer):
