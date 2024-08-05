@@ -123,6 +123,16 @@ class SubmitAnswerAPIView(APIView):
         image_url = None
         if user_type_instance.image:
             image_url = request.build_absolute_uri(user_type_instance.image.url)
+        
+        if user:
+            return Response({
+                'message': 'All questions answered.',
+                'scores': scores,
+                'user_type': user_type,
+                'content': user_type_instance.content,
+                'image': image_url,
+                "username": user.username
+            }, status=status.HTTP_200_OK)
 
         return Response({
             'message': 'All questions answered.',
