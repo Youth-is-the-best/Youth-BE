@@ -174,8 +174,8 @@ class BingoAPIView(APIView):
         return Response({
             "username": user.username,
             "usertype": user_type,
-            "start_date": bingo.start_date,
-            "end_date": bingo.end_date,
+            "start_date": bingo.start_date.strftime('%Y.%m.%d'),
+            "end_date": bingo.end_date.strftime('%Y.%m.%d'),
             "size": bingo.size,
             "bingo_obj": bingo_obj
         }, status=status.HTTP_200_OK)
@@ -322,6 +322,7 @@ class BingoObjAPIView(APIView):
 # 빙고 인증용 후기글 뷰
 class BingoReviewAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})

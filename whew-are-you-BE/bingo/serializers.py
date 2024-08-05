@@ -84,8 +84,9 @@ class NoticeSerializer(serializers.ModelSerializer):
     
     def get_image_url(self, obj):
         request = self.context.get('request')
-        if obj.image:
-            return request.build_absolute_uri(obj.image.url)
+        if request:
+            if obj and obj.image:
+                return request.build_absolute_uri(obj.image.url)
         return None
 
 
