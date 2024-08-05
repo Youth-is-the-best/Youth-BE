@@ -72,13 +72,14 @@ class BingoAPIView(APIView):
                     item_id = int(item_id)      # item_id를 정수 처리
                 title = item.get('title')
                 todos = item.get('todo')
+                large_category = item.get('large_category') # 입력 validate 건너뜀 주의! 
 
                 if not choice:      # choice 입력하지 않으면 에러
                     return Response({'error': 'choice 필드를 입력해주세요'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # 직접 입력한 항목의 경우
                 if choice == "0":
-                    self_content = CustomBingoItem.objects.create(author=user, title=title)
+                    self_content = CustomBingoItem.objects.create(author=user, title=title, large_category=large_category)
                     bingo_space = BingoSpace.objects.create(user=user, bingo=bingo, self_content=self_content, location=location, start_date=None, end_date=None)
 
                 # 끌어온 항목의 경우
@@ -150,6 +151,7 @@ class BingoAPIView(APIView):
                     "item_id": item.id,
                     "content_id": str(item.self_content.id),
                     "title": item.self_content.title,
+                    "large_category": item.self_content.large_category,
                     "todo": ToDoSerializer(todos, many=True).data
                 })
             else:
