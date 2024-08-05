@@ -1,6 +1,7 @@
 from django.db import models
 from bingo.models import BingoSpace, ToDo
 from users.models import CustomUser
+from datetime import date
 
 # 후기글 모델
 """
@@ -92,7 +93,7 @@ class Review(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateField(auto_now_add=True, editable=False)
 
     # 빙고 인증용 후기글 공통
     bingo_space = models.OneToOneField(BingoSpace, null=True, blank=True, related_name='review', on_delete=models.CASCADE)      # 빙고 인증용 후기글
@@ -111,6 +112,17 @@ class Review(models.Model):
     # 좋아요, 보관함
     likes = models.ManyToManyField(CustomUser, related_name='like_review', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_review', blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:  # 객체가 처음 생성될 때만 설정
+            self.created_date = date.today()
+        super(Review, self).save(*args, **kwargs)
+
+    def likes_count(self):
+        return self.likes.count()
+    
+    def comments_count(self):
+        return self.comments.count()
 
 
 # 후기글 이미지
@@ -162,4 +174,9 @@ class Comment(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments')        # 후기글
     content = models.TextField()        # 댓글 내용
     parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)     # 대댓글
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateField(auto_now_add=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.id:  # 객체가 처음 생성될 때만 설정
+            self.created_date = date.today()
+        super(Comment, self).save(*args, **kwargs)

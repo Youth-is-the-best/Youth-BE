@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from users.models import CustomUser
+from datetime import date
 
 
 # 빙고 항목 베이스 모델
@@ -83,6 +84,27 @@ class Notice(models.Model):
     likes = models.ManyToManyField(CustomUser, related_name='like_notice', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_notice', blank=True)
     image = models.ImageField(blank=True, null=True)
+    created_at = models.DateField(editable=False)
+
+    def save(self, *args, **kwargs):
+        if not self.id:  # 객체가 처음 생성될 때만 설정
+            self.created_date = date.today()
+        super(Notice, self).save(*args, **kwargs)
+
+    def likes_count(self):
+        return self.likes.count()
+    
+    def comments_count(self):
+        return self.comments.count()
+    
+
+# 공고 댓글
+class Comment(models.Model):
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comments')        # 사용자
+    notice = models.ForeignKey(Notice, on_delete=models.CASCADE, related_name='comments')        # 공고
+    content = models.TextField()        # 댓글 내용
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)     # 대댓글
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 # 디데이 모델

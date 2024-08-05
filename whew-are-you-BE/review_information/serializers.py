@@ -101,13 +101,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     start_date = CustomDateField()
     end_date = CustomDateField()
-    date = CustomDateField()
+    date = CustomDateField(required=False)
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'detailplans', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure']
-
+    
     def create(self, validated_data):
         # 필수 항목들
         user = self.context['request'].user
@@ -198,32 +198,50 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     author_id = serializers.IntegerField(source='user.id', read_only=True)
     author = serializers.CharField(source='user.username', read_only=True)
     profile = serializers.CharField(source='user.type_result.user_type', read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
+    created_at = serializers.DateField(read_only=True)
     start_date = CustomDateField()
     end_date = CustomDateField()
     date = CustomDateField()
+    likes_count = serializers.IntegerField(read_only=True)
+    comments_count = serializers.IntegerField(read_only=True)
+    is_liked_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
-        
+    
+    def get_is_liked_by_user(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(id=request.user.id).exists()
+        return False
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.user.id in rep['storage']:
+            rep['saved'] = True
+        else:
+            rep['saved'] = False
+        return rep
 
 # 댓글 시리얼라이저
 class CommentSerializer(serializers.ModelSerializer):
 
     author_name = serializers.CharField(source='author.username', read_only=True)
     replies = serializers.SerializerMethodField()
-    user_type = serializers.CharField(source='author.type_result.user_type', read_only=True)
+    created_at = serializers.DateField(read_only=True)
+    user_type = serializers.ImageField(source='author.type_result.image', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type']
-        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type']
+        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type', 'created_at']
+        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type', 'created_at']
 
     def get_replies(self, obj):
         if obj.replies.exists():
