@@ -3,6 +3,8 @@ from .models import Information, InformationImage, Review, ReviewImage, DetailPl
 from rest_framework import status
 from rest_framework.response import Response
 from datetime import datetime
+from bingo.models import ToDo
+from bingo.serializers import ToDoSerializer
 
 
 # 커스텀 데이트 필드
@@ -205,12 +207,13 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
     is_liked_by_user = serializers.SerializerMethodField()
+    todo = serializers.SerializerMethodField(read_only=True) #인증용 후기글이 아니면 null, 인증용 후기글인데 비어있으면 []
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage', 'todo']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
@@ -220,6 +223,14 @@ class ReviewGETSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.likes.filter(id=request.user.id).exists()
         return False
+    
+    def get_todo(self, obj):
+        if obj.bingo_space: # bingo_space가 존재 = 즉 obj가 인증용 후기글이다.
+            todo = ToDo.objects.filter(bingo_space=obj.bingo_space)
+            todo_serialized = ToDoSerializer(todo, many=True)
+            return todo_serialized.data
+        else:
+            return None #인증용 후기글이 아니면 null, 인증용 후기글인데 비어있으면 []
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
