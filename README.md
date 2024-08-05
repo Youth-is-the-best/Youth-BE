@@ -35,6 +35,8 @@
 <br/>
 
 ## 3. 프로젝트 구조
+### FrontEnd
+### BackEnd
 ```
 .
 ├── bingo
