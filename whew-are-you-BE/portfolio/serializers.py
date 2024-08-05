@@ -47,7 +47,8 @@ class OtherCompleteSerializer(serializers.ModelSerializer):
 
 # 포트폴리오 시리얼라이저
 class PortfolioSerializer(serializers.ModelSerializer):
-    birth = CustomDateField()
+    birth = CustomDateField(required=False)
+
     class Meta:
         model = Portfolio
         exclude = ['user']
