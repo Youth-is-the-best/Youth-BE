@@ -20,6 +20,11 @@
 
 <br/>
 
+## 프로젝트 아키텍처
+![아키텍처](https://github.com/user-attachments/assets/0b47bc0c-2232-45d9-937e-cc3de11a26f8)
+
+<br/>
+
 ## 1. 개발 환경
 - FrontEnd: React, Netlify
 - BackEnd: Django-Rest-Framework, AWS EC2, RDS, S3
