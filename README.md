@@ -28,4 +28,83 @@
 
 <br/>
 
-## 2. 채기
+## 2. 채택한 개발 기술과 브랜치 전략
+- FrontEnd:
+- BackEnd: GitHub Flow (기능 별 브랜치를 만들고 main에 병합하는 방식)
+
+<br/>
+
+## 3. 프로젝트 구조
+```
+.
+├── bingo
+│  ├── __init__.py
+│  ├── admin.py
+│  ├── apps.py
+│  ├── models.py
+│  ├── notice_urls.py
+│  ├── permissions.py
+│  ├── serializers.py
+│  ├── tests.py
+│  ├── urls.py
+│  └── views.py
+├── db.sqlite3
+├── hue.txt
+├── manage.py
+├── mypage
+│  ├── __init__.py
+│  ├── admin.py
+│  ├── apps.py
+│  ├── models.py
+│  ├── serializers.py
+│  ├── tests.py
+│  ├── urls.py
+│  └── views.py
+├── portfolio
+│  ├── admin.py
+│  ├── apps.py
+│  ├── models.py
+│  ├── serializers.py
+│  ├── tests.py
+│  ├── urls.py
+│  └── views.py
+├── requirements.txt
+├── review_information
+│  ├── admin.py
+│  ├── apps.py
+│  ├── information_urls.py
+│  ├── models.py
+│  ├── permissions.py
+│  ├── review_urls.py
+│  ├── search_urls.py
+│  ├── serializers.py
+│  ├── tests.py
+│  └── views.py
+├── secrets.json
+├── typetest
+│  ├── admin.py
+│  ├── apps.py
+│  ├── models.py
+│  ├── serializers.py
+│  ├── tests.py
+│  ├── urls.py
+│  └── views.py
+├── users
+│  ├── admin.py
+│  ├── apps.py
+│  ├── form.py
+│  ├── models.py
+│  ├── permissions.py
+│  ├── schools.json
+│  ├── sendmail.py
+│  ├── serializers.py
+│  ├── tests.py
+│  ├── urls.py
+│  └── views.py
+└── whewareyou
+    ├── __init__.py
+    ├── asgi.py
+    ├── settings.py
+    ├── urls.py
+    └── wsgi.py
+```
