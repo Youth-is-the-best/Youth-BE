@@ -194,8 +194,8 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
 
 # 디데이 시리얼라이저
 class DdaySerializer(serializers.ModelSerializer):
-    rest_school = CustomDateField()
-    return_school = CustomDateField()
+    rest_school = CustomDateField(required=False)
+    return_school = CustomDateField(required=False)
     
     class Meta:
         model = Dday
