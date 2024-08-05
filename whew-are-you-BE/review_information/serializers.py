@@ -107,8 +107,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     
     detailplans = DetailPlanSerializer(many=True)
     id = serializers.ReadOnlyField()
-    start_date = CustomDateField()
-    end_date = CustomDateField()
+    start_date = CustomDateField(required=False)
+    end_date = CustomDateField(required=False)
     date = CustomDateField(required=False)
 
     class Meta:
@@ -122,8 +122,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         large_category = validated_data['large_category']
         content = validated_data['content']
         title = validated_data['title']
-        start_date = validated_data['start_date']
-        end_date = validated_data['end_date']
         detailplans = validated_data['detailplans']
 
         # 필수 항목이 아니니까 get으로 받음
@@ -136,6 +134,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         app_due = validated_data.get('app_due')
         field = validated_data.get('field')
         date = validated_data.get('date')
+        start_date = validated_data.get('start_date')
+        end_date = validated_data.get('end_date')
 
         # 인턴(채용) 카테고리인 경우
         if large_category == 'CAREER':

@@ -90,8 +90,8 @@ class Review(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='review')
     title = models.CharField(max_length=50)
     large_category = models.CharField(max_length=20, choices=BINGO_CATEGORIES)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
     content = models.TextField()
     created_at = models.DateField(auto_now_add=True, editable=False)
 
