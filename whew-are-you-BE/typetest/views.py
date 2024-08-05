@@ -141,3 +141,38 @@ class SubmitAnswerAPIView(APIView):
             'content': user_type_instance.content,
             'image': image_url
         }, status=status.HTTP_200_OK)
+    
+
+# 유형 결과 공유
+class ResultAPIView(APIView):
+    def get(self, request, type, *args, **kwargs):
+        try:
+            result = Type.objects.get(user_type=type)
+        except:
+            return Response({"error": "해당 타입 결과가 존재하지 않습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 이미지 URL 생성
+        if result.image:
+            image_url = request.build_absolute_uri(result.image.url)
+
+        if type == 'SQUIRREL':
+            type = '준비성 철저한 다람쥐'
+        elif type == 'RABBIT':
+            type = '열정 가득 부지런한 토끼'
+        elif type == 'PANDA':
+            type = '재충전을 원하는 판다'
+        elif type == 'BEAVER':
+            type = '끝없는 발전을 추구하는 비버'
+        elif type == 'EAGLE':
+            type = '모험을 갈망하는 독수리'
+        elif type == 'BEAR':
+            type = '안정을 추구하는 곰'
+        elif type == 'DOLPHIN':
+            type = '호기심 많은 돌고래'
+
+        return Response({
+            "message": "유형 결과입니다.",
+            "user_type": type,
+            "content": result.content,
+            "image": image_url,
+        })
