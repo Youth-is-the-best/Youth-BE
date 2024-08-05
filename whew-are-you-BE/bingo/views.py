@@ -77,8 +77,15 @@ class BingoAPIView(APIView):
                 
                 # 직접 입력한 항목의 경우
                 if choice == "0":
-                    self_content = CustomBingoItem.objects.create(author=user, title=title)
-                    bingo_space = BingoSpace.objects.create(user=user, bingo=bingo, self_content=self_content, location=location, start_date=None, end_date=None)
+                    #self_content = CustomBingoItem.objects.create(author=user, title=title)
+                    item['author'] = user.id #이거 되냐??ㅇㅇ
+                    serializer = CustomBingoItemSerializer(data=item)
+                    if serializer.is_valid():
+                        self_content = serializer.save()
+                        bingo_space = BingoSpace.objects.create(user=user, bingo=bingo, self_content=self_content, location=location, start_date=None, end_date=None)
+                    else:
+                        return Response({'error': 'POST /bingo 하는 중 CustomBingoSerializer 에러 발생.', 'msg': serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
                 # 끌어온 항목의 경우
                 elif choice == "1":
