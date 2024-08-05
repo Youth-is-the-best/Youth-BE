@@ -15,6 +15,7 @@
 | 기획 | 디자인 | 프론트엔드 | 백엔드 |
 | --- | --- | --- | --- |
 | 조하정 | 김은비 | [정선빈](https://github.com/jungsunbeen), [정은빈](https://github.com/eunkong0-0) | [박채린](https://github.com/cherrynniii), [이강록](https://github.com/kangroklee) |
+
 <br/><br/>
 
 ## 1. 개발 환경
