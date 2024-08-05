@@ -101,13 +101,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     start_date = CustomDateField()
     end_date = CustomDateField()
-    date = CustomDateField()
+    date = CustomDateField(required=False)
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'detailplans', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure']
-
+    
     def create(self, validated_data):
         # 필수 항목들
         user = self.context['request'].user
@@ -235,12 +235,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
     author_name = serializers.CharField(source='author.username', read_only=True)
     replies = serializers.SerializerMethodField()
-    user_type = serializers.CharField(source='author.type_result.image', read_only=True)
+    created_at = serializers.DateField(read_only=True)
+    user_type = serializers.ImageField(source='author.type_result.image', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type']
-        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type']
+        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type', 'created_at']
+        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type', 'created_at']
 
     def get_replies(self, obj):
         if obj.replies.exists():
