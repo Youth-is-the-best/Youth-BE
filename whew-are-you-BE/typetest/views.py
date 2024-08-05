@@ -118,10 +118,16 @@ class SubmitAnswerAPIView(APIView):
             # CustomUser의 type_result 필드 업데이트
             user.type_result = user_type_instance
             user.save()
-                
+        
+        # 이미지 URL 생성
+        image_url = None
+        if user_type_instance.image:
+            image_url = request.build_absolute_uri(user_type_instance.image.url)
+
         return Response({
             'message': 'All questions answered.',
             'scores': scores,
             'user_type': user_type,
-            'content': user_type_instance.content
+            'content': user_type_instance.content,
+            'image': image_url
         }, status=status.HTTP_200_OK)

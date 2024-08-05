@@ -210,7 +210,7 @@ class ReviewGETSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
@@ -235,8 +235,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     author_name = serializers.CharField(source='author.username', read_only=True)
     replies = serializers.SerializerMethodField()
-    user_type = serializers.CharField(source='author.type_result.user_type', read_only=True)
     created_at = serializers.DateField(read_only=True)
+    user_type = serializers.ImageField(source='author.type_result.image', read_only=True)
 
     class Meta:
         model = Comment

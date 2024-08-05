@@ -35,3 +35,4 @@ class Type(models.Model):
     ]
     user_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     content = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='typetest/')
