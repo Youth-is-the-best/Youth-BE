@@ -57,7 +57,7 @@ class PortfolioAPIView(APIView):
         try:
             portfolio = Portfolio.objects.get(user=user)
         except Portfolio.DoesNotExist:
-            return Response({"error": "포트폴리오가 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+            portfolio = Portfolio.objects.create(user=user)
         
         # 포트폴리오 기본 정보
         portfolio_serializer = PortfolioSerializer(portfolio)
