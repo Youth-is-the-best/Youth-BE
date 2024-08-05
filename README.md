@@ -2,7 +2,7 @@
 ![image](https://github.com/user-attachments/assets/19b1af6f-cd1e-4145-b058-3cc04f6ce792)
 - 배포 url: https://makneangeee.netlify.app/
 - API 배포 url: https://maknaengee.p-e.kr
-
+   
 ## 프로젝트 소개
 - 대학생 10명 중 6명 이상이 진로 정체감과 취업에 대한 불안으로 심리적 어려움을 겪고 있습니다.
 - 실제로 63.6%의 대학생은 취업 준비, 진로 탐색, 휴식 등 의 시간을 원해 휴학까지 고민했습니다.
