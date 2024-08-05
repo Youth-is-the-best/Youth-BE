@@ -236,11 +236,12 @@ class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username', read_only=True)
     replies = serializers.SerializerMethodField()
     user_type = serializers.CharField(source='author.type_result.user_type', read_only=True)
+    created_at = serializers.DateField(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type']
-        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type']
+        fields = ['id', 'content', 'parent', 'author', 'created_at', 'replies', 'author_name', 'user_type', 'created_at']
+        read_only_fields = ['id', 'created_at', 'author', 'replies', 'replies', 'author_name', 'user_type', 'created_at']
 
     def get_replies(self, obj):
         if obj.replies.exists():
