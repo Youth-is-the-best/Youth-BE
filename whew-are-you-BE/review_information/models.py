@@ -156,10 +156,16 @@ class Information(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     content = models.TextField()
+    created_at = models.DateField(auto_now_add=True)
 
     # 좋아요, 보관함
     likes = models.ManyToManyField(CustomUser, related_name='like_information', blank=True)
     storage = models.ManyToManyField(CustomUser, related_name='storage_information', blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:  # 객체가 처음 생성될 때만 설정
+            self.created_date = date.today()
+        super(Information, self).save(*args, **kwargs)
 
 
 # 정보글 이미지

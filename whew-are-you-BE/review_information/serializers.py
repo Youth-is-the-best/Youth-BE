@@ -36,10 +36,12 @@ class InformationImageSerializer(serializers.ModelSerializer):
 class InformationGETSerializer(serializers.ModelSerializer):
     information_id = serializers.IntegerField(source='id')
     images = InformationImageSerializer(many=True, read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    created_at = serializers.DateField(read_only=True)
 
     class Meta:
         model = Information
-        fields = ['information_id', 'title', 'content', 'large_category', 'images']
+        fields = ['information_id', 'title', 'content', 'large_category', 'images', 'username', 'created_at']
 
     def to_representation(self, instance):
         rep =  super().to_representation(instance)
