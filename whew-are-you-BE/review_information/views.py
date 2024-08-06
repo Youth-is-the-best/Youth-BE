@@ -80,11 +80,11 @@ class ReviewAPIView(APIView):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
 
+        date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
+        reviews = Review.objects.filter(created_at__lte=date_limit)
 
         if large_category:
-            reviews = Review.objects.filter(large_category=large_category)
-        else:
-            reviews = Review.objects.all()
+            reviews = reviews.filter(large_category=large_category)
 
         if search_query:
             reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
@@ -248,8 +248,10 @@ class CommentDetailAPIView(APIView):
 class FetchRelatedReviewsAPIView(APIView):
 
     def get(self, request, bingo_item_id, *args, **kwargs):
+        date_limit = datetime(2024, 8, 5) #시간대 UTC 기준이라 하루 앞당김
+
         bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
-        related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item)
+        related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item, created_at__lte=date_limit)
         annotated_reviews = related_reviews.annotate(num_likes=Count('likes'))
         top_reviews = annotated_reviews.order_by('-num_likes') 
         top_reviews = top_reviews[:3]       
@@ -310,10 +312,11 @@ class SearchAPIView(APIView):
         # 공고 글 데이터 담기
         response['notice'] = data
 
+        date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
+        reviews = Review.objects.filter(created_at__lte=date_limit)
+
         if large_category:
-            reviews = Review.objects.filter(large_category=large_category)
-        else:
-            reviews = Review.objects.all()
+            reviews = reviews.filter(large_category=large_category)
 
         if search_query:
             reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
