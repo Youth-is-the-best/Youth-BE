@@ -156,6 +156,8 @@ class ResultAPIView(APIView):
         if result.image:
             image_url = request.build_absolute_uri(result.image.url)
 
+        typename = type
+
         if type == 'SQUIRREL':
             type = '준비성 철저한 다람쥐'
         elif type == 'RABBIT':
@@ -173,7 +175,8 @@ class ResultAPIView(APIView):
 
         return Response({
             "message": "유형 결과입니다.",
-            "user_type": type,
+            "user_type": typename,
+            "user_type_display": type,
             "content": result.content,
             "image": image_url,
         })
