@@ -1,6 +1,6 @@
 # 🏫 Hue are you : 휴학의 색을 묻다
 ![image](https://github.com/user-attachments/assets/06987b1c-6bd3-4fa4-8032-ae65533e28ca)
-- 배포 url: https://makneangeee.netlify.app/
+- 배포 url: https://hueareyou.netlify.app/
 - API 배포 url: https://maknaengee.p-e.kr
 
 <br/>
