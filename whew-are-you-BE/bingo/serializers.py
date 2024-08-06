@@ -31,12 +31,16 @@ class BingoSpaceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class CustomBingoItemSerializer(serializers.ModelSerializer):
+    large_category_display = serializers.SerializerMethodField()
     start_date = CustomDateField()
     end_date = CustomDateField()
 
     class Meta:
         model = CustomBingoItem
         fields = "__all__"
+
+    def get_large_category_display(self, obj):
+        return obj.get_large_category_display()
 
 class ProvidedBingoItemSerializer(serializers.ModelSerializer):
     large_category_display = serializers.SerializerMethodField()
