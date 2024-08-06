@@ -249,7 +249,7 @@ class FetchRelatedReviewsAPIView(APIView):
 
     def get(self, request, bingo_item_id, *args, **kwargs):
         date_limit = datetime(2024, 8, 6) #시간대 UTC+9 기준인지 확인하기!
-        
+
         bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
         related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item, created_at__lte=date_limit)
         annotated_reviews = related_reviews.annotate(num_likes=Count('likes'))
@@ -312,10 +312,11 @@ class SearchAPIView(APIView):
         # 공고 글 데이터 담기
         response['notice'] = data
 
+        date_limit = datetime(2024, 8, 6) #시간대 UTC+9 기준인지 확인하기!
+        reviews = Review.objects.filter(created_at__lte=date_limit)
+
         if large_category:
-            reviews = Review.objects.filter(large_category=large_category)
-        else:
-            reviews = Review.objects.all()
+            reviews = reviews.filter(large_category=large_category)
 
         if search_query:
             reviews = reviews.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
