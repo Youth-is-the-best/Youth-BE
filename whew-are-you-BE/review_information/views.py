@@ -82,7 +82,7 @@ class ReviewAPIView(APIView):
         end_date = request.query_params.get('end_date')
 
         date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
-        cache_key = f'reviews_before_{date_limit.strftime('%Y-%m-%d')}'
+        cache_key = f"reviews_before_{date_limit.strftime('%Y-%m-%d')}"
         reviews = cache.get(cache_key)
         if not reviews:
             reviews = Review.objects.filter(created_at__lte=date_limit)
@@ -254,7 +254,7 @@ class FetchRelatedReviewsAPIView(APIView):
 
     def get(self, request, bingo_item_id, *args, **kwargs):
         date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
-        cache_key = f'reviews_before_{date_limit.strftime('%Y-%m-%d')}'
+        cache_key = f"reviews_before_{date_limit.strftime('%Y-%m-%d')}"
         reviews = cache.get(cache_key)
         if not reviews:
             reviews = Review.objects.filter(created_at__lte=date_limit)
@@ -323,7 +323,7 @@ class SearchAPIView(APIView):
         response['notice'] = data
 
         date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
-        cache_key = f'reviews_before_{date_limit.strftime('%Y-%m-%d')}'
+        cache_key = f"reviews_before_{date_limit.strftime('%Y-%m-%d')}"
         reviews = cache.get(cache_key)
         if not reviews:
             reviews = Review.objects.filter(created_at__lte=date_limit)
