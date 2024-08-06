@@ -3,6 +3,8 @@ from .models import Information, InformationImage, Review, ReviewImage, DetailPl
 from rest_framework import status
 from rest_framework.response import Response
 from datetime import datetime
+from bingo.models import ToDo
+from bingo.serializers import ToDoSerializer
 
 
 # 커스텀 데이트 필드
@@ -34,11 +36,17 @@ class InformationImageSerializer(serializers.ModelSerializer):
 class InformationGETSerializer(serializers.ModelSerializer):
     information_id = serializers.IntegerField(source='id')
     images = InformationImageSerializer(many=True, read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    created_at = serializers.DateField(read_only=True)
 
     class Meta:
         model = Information
-        fields = ['information_id', 'title', 'content', 'large_category', 'images']
+        fields = ['information_id', 'title', 'content', 'large_category', 'images', 'username', 'created_at']
 
+    def to_representation(self, instance):
+        rep =  super().to_representation(instance)
+        rep['large_category_display'] = '휴알유' #휴알유 포스트이므로
+        return rep
 
 # 정보글 POST 시리얼라이저
 class InformationSerializer(serializers.ModelSerializer):
@@ -99,8 +107,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     
     detailplans = DetailPlanSerializer(many=True)
     id = serializers.ReadOnlyField()
-    start_date = CustomDateField()
-    end_date = CustomDateField()
+    start_date = CustomDateField(required=False)
+    end_date = CustomDateField(required=False)
     date = CustomDateField(required=False)
 
     class Meta:
@@ -114,8 +122,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         large_category = validated_data['large_category']
         content = validated_data['content']
         title = validated_data['title']
-        start_date = validated_data['start_date']
-        end_date = validated_data['end_date']
         detailplans = validated_data['detailplans']
 
         # 필수 항목이 아니니까 get으로 받음
@@ -128,6 +134,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         app_due = validated_data.get('app_due')
         field = validated_data.get('field')
         date = validated_data.get('date')
+        start_date = validated_data.get('start_date')
+        end_date = validated_data.get('end_date')
 
         # 인턴(채용) 카테고리인 경우
         if large_category == 'CAREER':
@@ -205,12 +213,13 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
     is_liked_by_user = serializers.SerializerMethodField()
+    todo = serializers.SerializerMethodField(read_only=True) #인증용 후기글이 아니면 null, 인증용 후기글인데 비어있으면 []
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage', 'todo']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
@@ -220,6 +229,14 @@ class ReviewGETSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.likes.filter(id=request.user.id).exists()
         return False
+    
+    def get_todo(self, obj):
+        if obj.bingo_space: # bingo_space가 존재 = 즉 obj가 인증용 후기글이다.
+            todo = ToDo.objects.filter(bingo_space=obj.bingo_space)
+            todo_serialized = ToDoSerializer(todo, many=True)
+            return todo_serialized.data
+        else:
+            return None #인증용 후기글이 아니면 null, 인증용 후기글인데 비어있으면 []
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)

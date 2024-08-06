@@ -16,6 +16,7 @@ from review_information.serializers import InformationGETSerializer, ReviewGETSe
 from django.utils import timezone
 from datetime import timedelta
 from copy import copy
+from django.core.exceptions import ObjectDoesNotExist
 
 
 # 빙고 저장 & 불러오기
@@ -71,13 +72,14 @@ class BingoAPIView(APIView):
                     item_id = int(item_id)      # item_id를 정수 처리
                 title = item.get('title')
                 todos = item.get('todo')
+                large_category = item.get('large_category') # 입력 validate 건너뜀 주의! 
 
                 if not choice:      # choice 입력하지 않으면 에러
                     return Response({'error': 'choice 필드를 입력해주세요'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 # 직접 입력한 항목의 경우
                 if choice == "0":
-                    self_content = CustomBingoItem.objects.create(author=user, title=title)
+                    self_content = CustomBingoItem.objects.create(author=user, title=title, large_category=large_category)
                     bingo_space = BingoSpace.objects.create(user=user, bingo=bingo, self_content=self_content, location=location, start_date=None, end_date=None)
 
                 # 끌어온 항목의 경우
@@ -149,6 +151,7 @@ class BingoAPIView(APIView):
                     "item_id": item.id,
                     "content_id": str(item.self_content.id),
                     "title": item.self_content.title,
+                    "large_category": item.self_content.large_category,
                     "todo": ToDoSerializer(todos, many=True).data
                 })
             else:
@@ -325,19 +328,34 @@ class BingoReviewAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        serializer = ReviewPOSTSerializer(data=request.data, context={'request':request})
+        serializer = ReviewPOSTSerializer(data=request.data, context={'request': request})
         
         if serializer.is_valid():
-            active_bingo = Bingo.objects.get(user=request.user, is_active=True)
-            bingo_space = BingoSpace.objects.get(bingo_id=active_bingo, location=request.data.get('space_location'))
+            try:
+                active_bingo = Bingo.objects.get(user=request.user, is_active=True)
+            except Bingo.DoesNotExist:
+                return Response({"error": "활성화된 빙고를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            
+            try:
+                bingo_space = BingoSpace.objects.get(bingo_id=active_bingo, location=request.data.get('space_location'))
+            except BingoSpace.DoesNotExist:
+                return Response({"error": "해당 위치의 빙고 공간을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            
             todos = ToDo.objects.filter(bingo_space_id=bingo_space)
-            for todo in todos: 
+            for todo in todos:
                 if not todo.is_completed:
                     return Response({"error": "투두 항목이 모두 완료되어야 후기글 작성이 가능합니다.", "short_code": "todo_remaining"}, status=status.HTTP_400_BAD_REQUEST)
-
+            
+            try:
+                if bingo_space.review:
+                    return Response({'error': "기작성된 인증용 후기글이 존재합니다."}, status=status.HTTP_400_BAD_REQUEST)
+            except ObjectDoesNotExist:
+                # `review`가 존재하지 않을 경우 예외를 무시하고 후기글을 작성함
+                pass
+            
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class BingoRecsAPIView(APIView):
@@ -573,7 +591,45 @@ class DdayAPIView(APIView):
         serializer = DdaySerializer(dday, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            dday_date = serializer.data
+
+            # 현재 날짜
+            current_date = timezone.now().date()
+            rest_dday = None
+            return_dday = None
+
+            if dday.rest_school:
+                rest_school = dday.rest_school
+                rest_dday = (current_date - rest_school).days
+            if dday.return_school:
+                return_school = dday.return_school
+                return_dday = (current_date - return_school).days
+            
+            rest_dday_display = "휴학 D-?"
+            return_dday_display = "복학 D-?"
+
+            if rest_dday:
+                if rest_dday < 0:       # 휴학 시점이 현재 시점보다 늦음
+                    rest_dday_display = "휴학 D" + str(rest_dday)
+                elif rest_dday > 0:     # 휴학 시점이 현재보다 이름
+                    rest_dday_display = "휴학 D+" + str(rest_dday)
+                else:                   # 휴학 시점 당일
+                    rest_dday_display = "휴학 D-day"
+            if return_dday:
+                if return_dday < 0:         # 복학 시점이 현재 시점보다 늦음
+                    return_dday_display = "복학 D" + str(return_dday)
+                elif rest_dday > 0:         # 복학 시점이 현재 시점보다 이름
+                    return_dday_display = "복학 D+" + str(return_dday)
+                else:                       # 복학 시점 당일
+                    return_dday_display = "복학 D-day"
+
+            return Response({
+                "dday_date": dday_date,
+                "display": {
+                    "rest_dday_display": rest_dday_display,
+                    "return_dday_display": return_dday_display
+                }
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"error": "디데이 설정에 실패하였습니다. 요청 양식을 다시 확인해주세요."}, status=status.HTTP_400_BAD_REQUEST)
         

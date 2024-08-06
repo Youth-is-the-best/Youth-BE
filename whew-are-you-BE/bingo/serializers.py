@@ -50,6 +50,12 @@ class ProvidedBingoItemSerializer(serializers.ModelSerializer):
 
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
+    
+    def to_representation(self, instance):
+        rep =  super().to_representation(instance)
+        if instance.is_notice and instance.notice:
+            rep['notice_id'] = instance.notice.id
+        return rep
 
 class ToDoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -121,8 +127,6 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
             duty = bingo_space.recommend_content.duty       # 채용: 직무
             employment_form = bingo_space.recommend_content.employment_form     # 채용: 채용 형태
             area = bingo_space.recommend_content.area       # 채용: 근무 지역, 대외활동: 활동 지역
-            start_date = bingo_space.recommend_content.start_date       # 행사 시작 날짜
-            end_date = bingo_space.recommend_content.end_date       # 행사 종료 날짜
             host = bingo_space.recommend_content.host       # 자격증, 공모전: 주최 기관
             app_fee = bingo_space.recommend_content.app_fee     # 자격증: 응시료
             prep_period = bingo_space.recommend_content.prep_period     # 준비 기간
@@ -135,8 +139,6 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
             duty = bingo_space.self_content.duty
             employment_form = bingo_space.self_content.employment_form
             area = bingo_space.self_content.area
-            start_date = bingo_space.self_content.start_date
-            end_date = bingo_space.self_content.end_date
             host = bingo_space.self_content.host
             app_fee = bingo_space.self_content.app_fee
             prep_period = bingo_space.self_content.prep_period
@@ -188,8 +190,8 @@ class ReviewPOSTSerializer(serializers.ModelSerializer):
 
 # 디데이 시리얼라이저
 class DdaySerializer(serializers.ModelSerializer):
-    rest_school = CustomDateField()
-    return_school = CustomDateField()
+    rest_school = CustomDateField(required=False)
+    return_school = CustomDateField(required=False)
     
     class Meta:
         model = Dday
