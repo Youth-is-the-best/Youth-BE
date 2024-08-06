@@ -48,6 +48,8 @@ class OtherCompleteSerializer(serializers.ModelSerializer):
 # 포트폴리오 시리얼라이저
 class PortfolioSerializer(serializers.ModelSerializer):
     birth = CustomDateField(required=False)
+    image = serializers.ImageField(source='user.type_result.image', read_only=True, required=False)
+    user_type = serializers.CharField(source='user.type_result.user_type', read_only=True, required=False)
 
     class Meta:
         model = Portfolio
