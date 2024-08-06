@@ -139,6 +139,7 @@ class SubmitAnswerAPIView(APIView):
             'message': 'All questions answered.',
             'scores': scores,
             'user_type': user_type,
+            'user_type_display': user_type_display,
             'content': user_type_instance.content,
             'image': image_url
         }, status=status.HTTP_200_OK)
