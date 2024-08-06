@@ -80,7 +80,7 @@ class ReviewAPIView(APIView):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
 
-        date_limit = datetime(2024, 8, 6) #시간대 UTC+9 기준인지 확인하기!
+        date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
         reviews = Review.objects.filter(created_at__lte=date_limit)
 
         if large_category:
@@ -248,7 +248,7 @@ class CommentDetailAPIView(APIView):
 class FetchRelatedReviewsAPIView(APIView):
 
     def get(self, request, bingo_item_id, *args, **kwargs):
-        date_limit = datetime(2024, 8, 6) #시간대 UTC+9 기준인지 확인하기!
+        date_limit = datetime(2024, 8, 5) #시간대 UTC 기준이라 하루 앞당김
 
         bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
         related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item, created_at__lte=date_limit)
@@ -312,7 +312,7 @@ class SearchAPIView(APIView):
         # 공고 글 데이터 담기
         response['notice'] = data
 
-        date_limit = datetime(2024, 8, 6) #시간대 UTC+9 기준인지 확인하기!
+        date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
         reviews = Review.objects.filter(created_at__lte=date_limit)
 
         if large_category:
