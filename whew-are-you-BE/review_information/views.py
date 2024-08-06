@@ -15,6 +15,7 @@ from bingo.serializers import NoticeSerializer, ProvidedBingoItemSerializer
 from bingo.models import ProvidedBingoItem, Notice
 from mypage.models import News
 from copy import copy
+from django.core.cache import cache
 
 
 # 모든 정보글 뷰
@@ -81,7 +82,11 @@ class ReviewAPIView(APIView):
         end_date = request.query_params.get('end_date')
 
         date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
-        reviews = Review.objects.filter(created_at__lte=date_limit)
+        cache_key = f'reviews_before_{date_limit.strftime('%Y-%m-%d')}'
+        reviews = cache.get(cache_key)
+        if not reviews:
+            reviews = Review.objects.filter(created_at__lte=date_limit)
+            cache.set(cache_key, reviews, timeout=43200) #12시간 동안 캐시 보관
 
         if large_category:
             reviews = reviews.filter(large_category=large_category)
@@ -248,10 +253,15 @@ class CommentDetailAPIView(APIView):
 class FetchRelatedReviewsAPIView(APIView):
 
     def get(self, request, bingo_item_id, *args, **kwargs):
-        date_limit = datetime(2024, 8, 5) #시간대 UTC 기준이라 하루 앞당김
+        date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
+        cache_key = f'reviews_before_{date_limit.strftime('%Y-%m-%d')}'
+        reviews = cache.get(cache_key)
+        if not reviews:
+            reviews = Review.objects.filter(created_at__lte=date_limit)
+            cache.set(cache_key, reviews, timeout=43200) #12시간 동안 캐시 보관
 
         bingo_item = ProvidedBingoItem.objects.get(id=bingo_item_id)
-        related_reviews = Review.objects.filter(bingo_space__recommend_content_id = bingo_item, created_at__lte=date_limit)
+        related_reviews = reviews.filter(bingo_space__recommend_content_id = bingo_item)
         annotated_reviews = related_reviews.annotate(num_likes=Count('likes'))
         top_reviews = annotated_reviews.order_by('-num_likes') 
         top_reviews = top_reviews[:3]       
@@ -313,7 +323,11 @@ class SearchAPIView(APIView):
         response['notice'] = data
 
         date_limit = datetime(2024, 8, 5) #하루 앞당김 (UTC감안해서)
-        reviews = Review.objects.filter(created_at__lte=date_limit)
+        cache_key = f'reviews_before_{date_limit.strftime('%Y-%m-%d')}'
+        reviews = cache.get(cache_key)
+        if not reviews:
+            reviews = Review.objects.filter(created_at__lte=date_limit)
+            cache.set(cache_key, reviews, timeout=43200) #12시간 동안 캐시 보관
 
         if large_category:
             reviews = reviews.filter(large_category=large_category)
