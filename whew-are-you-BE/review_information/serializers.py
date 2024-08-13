@@ -214,12 +214,13 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     comments_count = serializers.IntegerField(read_only=True)
     is_liked_by_user = serializers.SerializerMethodField()
     todo = serializers.SerializerMethodField(read_only=True) #인증용 후기글이 아니면 null, 인증용 후기글인데 비어있으면 []
+    provided_bingo_item = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Review
         fields = ['id', 'title', 'large_category', 'start_date', 'end_date', 'content', 'duty', 'employment_form', 'area', 
                   'host', 'app_fee', 'date', 'app_due', 'field', 'procedure', 'images', 'detailplans', 'likes', 'large_category_display',
-                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage', 'todo']
+                  'author_id', 'author', 'created_at', 'profile', 'likes_count', 'comments_count', 'is_liked_by_user', 'storage', 'todo', 'provided_bingo_item']
         
     def get_large_category_display(self, obj):
         return obj.get_large_category_display()
@@ -237,6 +238,12 @@ class ReviewGETSerializer(serializers.ModelSerializer):
             return todo_serialized.data
         else:
             return None #인증용 후기글이 아니면 null, 인증용 후기글인데 비어있으면 []
+        
+    def get_provided_bingo_item(self, obj):
+        if obj.bingo_space and obj.bingo_space.recommend_content:
+            return obj.bingo_space.recommend_content.id
+        else:
+            return None
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
